@@ -1,4 +1,5 @@
-from flask import Flask, render_template, g
+from flask import Flask, render_template, g, redirect, url_for
+import datetime
 import sqlite3
 
 DATABASE = "habit_tree_save_file.db"
@@ -36,15 +37,6 @@ def init_db():
             Experience_Required INTEGER
         )   
     ''')
-
-    # Initialize the Tree table if empty
-    cursor.execute("SELECT COUNT(*) FROM Tree")
-    tree_count = cursor.fetchone()[0]
-    if tree_count == 0:
-        cursor.execute('''
-            INSERT INTO Tree (Name, Creation_Date, Stage, Water, Water_Required)
-            VALUES (?, ?, ?, ?, ?)
-        ''', ('My Tree', '2025-04-04', 1, 0, 50))
 
     # Initialize the Farm table if empty
     cursor.execute("SELECT COUNT(*) FROM Farm")
@@ -104,6 +96,24 @@ def index():
             })
 
     return render_template("index.html", trees=trees, farm_level=farm_level)
+
+@app.route('/plant', methods=['POST'])
+def plant_tree():
+    # Add your tree planting logic here
+    create_tree()
+    return redirect(url_for('index'))
+
+def create_tree():
+    db = get_db()
+    cursor = db.cursor()
+
+    current_date = datetime.date.today().isoformat()  # Get current date as string
+    cursor.execute('''
+        INSERT INTO Tree (Name, Creation_Date, Stage, Water, Water_Required)
+        VALUES (?, ?, ?, ?, ?)
+    ''', ('My Tree', current_date, 1, 0, 50))  # Use current date
+
+    db.commit()
 
 if __name__ == "__main__":
     with app.app_context():
