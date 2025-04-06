@@ -12,7 +12,7 @@
   <!-- Navbar -->
   <div id="navbarContainer"></div>
   <script>
-    const nav = document.querySelector("#navbarContainer"); // You missed the '#' symbol to select by ID
+    const nav = document.querySelector("#navbarContainer");
 
     fetch("/static/NavBar.html")
       .then(res => res.text())
@@ -34,7 +34,7 @@
   </script>
 
   <div class="container my-4">
-    <h1 class="mb-4 text-center">Your Farm</h1>
+    <h1 class="mb-4 text-center">Your Garden</h1>
     
     <!-- Card for Trees with Horizontal Scroll -->
     <div class="card mb-4">
@@ -47,8 +47,10 @@
                     <!-- Clickable Planted Tree Card -->
                     <div class="card me-2" style="min-width: 150px; cursor: pointer;" 
                     data-tree="true"
+                    data-index="{{ loop.index0 }}"
                     data-name="{{ tree.name }}"
                     data-water="{{ tree.water }}"
+                    data-stage="{{ tree.stage }}"
                     data-water-required="{{ tree.water_required }}">
                     <img src="/static/tree_stage_6.png" class="card-img-top" alt="Tree Stage">
                     <div class="card-body text-center">
@@ -85,7 +87,7 @@
                     <div class="card-body text-center">
                         <h6 class="card-title mb-2">Tree Slot not unlocked yet.</h6>
                         <br>
-                        <h6 class="card-title mb-2">Reach farm level {{ tree.required_level }} to unlock</h6>
+                        <h6 class="card-title mb-2">Reach Garden level {{ tree.required_level }} to unlock</h6>
                         <img src="/static/lock.png" class="card-img-top img-fluid w-25" alt="Locked">
                     </div>
                 </div>
@@ -104,47 +106,49 @@
     <!-- Tree Details Card -->
     <div id="treeDetailsCard" class="card mb-4 d-none">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="input-group me-2">
-                    <input type="text" class="form-control form-control-lg" id="treeDetailsTitle" placeholder="Tree Name">
-                    <button class="btn btn-outline-secondary" type="button" id="saveNameBtn">
-                        <i class="bi bi-floppy"></i> Save
-                    </button>
-                </div>
+            <!-- Editable Tree Name Input Group -->
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="treeDetailsTitle" placeholder="Tree Name">
+                <button class="btn btn-outline-secondary" type="button" id="saveTreeName">Save</button>
             </div>
-    
-            <div class="row mb-3">
-                <div class="col">
-                    <span class="badge bg-info fs-6">Stage: 3</span>
-                </div>
-                <div class="col text-end">
-                    <span class="text-muted">Last watered: 3 days ago</span>
-                </div>
-            </div>
-    
-            <p class="card-text mb-2">
-                Water: <span id="treeWater" class="fw-bold">0</span>/<span id="treeWaterRequired" class="fw-bold">0</span>
+            <!-- Additional Tree Details -->
+            <p class="card-text mb-1" id="treeStage"><strong>Stage:</strong> 0</p>
+            <p class="card-text mb-3"><strong>Last watered:</strong> 3 days ago</p>
+            <!-- Water Information and Progress -->
+            <p class="card-text">
+                Water: <span id="treeWater">0</span>/<span id="treeWaterRequired">0</span>
             </p>
-            
-            <div class="progress mb-4" style="height: 25px;">
-                <div class="progress-bar bg-success progress-bar-striped" 
-                     role="progressbar" 
-                     id="treeProgressBar"
-                     style="width: 0%"
-                     aria-valuenow="0" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
+            <div class="progress mb-3" style="height: 20px; position: relative;">
+                <div class="progress-bar bg-success" role="progressbar" id="treeProgressBar"
+                    style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                 </div>
-                <div class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center">
-                    <span id="treeProgressText" class="fw-bold text-dark">0/0</span>
+                <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center pointer-events-none">
+                    <span id="treeProgressText">0/0</span>
                 </div>
             </div>
-    
-            <button class="btn btn-primary w-100 py-2 fs-5" 
-                    data-bs-toggle="modal" 
-                    data-bs-target="#waterModal">
-                <i class="bi bi-droplet"></i> Water Tree
+            <!-- Water Button -->
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#waterModal" id="waterButton">
+                Water
             </button>
+        </div>
+    </div>
+
+    <!-- Bootstrap Modal for Water Action -->
+    <div class="modal fade" id="waterModal" tabindex="-1" aria-labelledby="waterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="waterModalLabel">Water Tree</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                Would you like to water the tree?
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmWaterButton">Yes, Water</button>
+                </div>
+            </div>
         </div>
     </div>
     
