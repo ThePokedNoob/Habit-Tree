@@ -68,6 +68,14 @@ def index():
     garden_row = cursor.fetchone()
     garden_water = garden_row[0] if garden_row else 1
 
+    cursor.execute("SELECT Experience FROM Garden LIMIT 1")
+    garden_row = cursor.fetchone()
+    garden_experience = garden_row[0] if garden_row else 1
+
+    cursor.execute("SELECT Experience_Required FROM Garden LIMIT 1")
+    garden_row = cursor.fetchone()
+    garden_experience_required = garden_row[0] if garden_row else 1
+
     trees = []
     for i in range(10):
         required_level = TREE_REQUIREMENTS[i]
@@ -100,7 +108,7 @@ def index():
                 "required_level": required_level
             })
 
-    return render_template("index.html", trees=trees, garden_level=garden_level, garden_water=garden_water)
+    return render_template("index.html", trees=trees, garden_level=garden_level, garden_water=garden_water, garden_experience=garden_experience, garden_experience_required=garden_experience_required)
 
 @app.route('/plant', methods=['POST'])
 def plant_tree():

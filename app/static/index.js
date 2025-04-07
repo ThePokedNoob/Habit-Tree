@@ -40,4 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(response => response.ok ? window.location.reload() : console.error('Failed to save'))
         .catch(error => console.error('Error:', error));
     });
+
+    // Increase or decrease the value by 10 on button clicks
+    document.getElementById('incrementButton').addEventListener('click', function() {
+        let waterInput = document.getElementById('waterInput');
+        waterInput.value = parseInt(waterInput.value) + 10;
+    });
+    
+    document.getElementById('decrementButton').addEventListener('click', function() {
+        let waterInput = document.getElementById('waterInput');
+        // Prevent the value from going below 0
+        waterInput.value = Math.max(0, parseInt(waterInput.value) - 10);
+    });
 });
