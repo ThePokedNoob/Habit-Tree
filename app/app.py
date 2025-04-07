@@ -120,13 +120,6 @@ def create_tree():
 
     db.commit()
 
-@app.route("/navbar")
-def navbar():
-    garden_level = 3
-    garden_water = 19
-    return render_template("NavBar.html", garden_level=garden_level, garden_water=garden_water)
-
-
 @app.route('/edit', methods=['POST'])
 def edit_tree():
     data = request.get_json()
