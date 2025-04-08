@@ -162,7 +162,7 @@
                 <input type="number" class="form-control text-center" id="waterInput" value="0" readonly>
                 <button class="btn btn-outline-secondary" type="button" id="incrementButton">+</button>
             </div>
-            <p class="text-danger d-none" id="errorText">Error: Something went wrong!</p>
+            <p class="text-danger" id="addWaterErrorText"></p>
             </div>
             <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -172,44 +172,6 @@
         </div>
     </div>
         
-    <!-- Water Modal -->
-    <div class="modal fade" id="waterModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Water Tree</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to water this tree? This will reset the watering timer.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary">Confirm Watering</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Water Modal -->
-    <div class="modal fade" id="waterModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Water Tree</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to water this tree?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-success">Confirm Watering</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
     <!-- Row for Weather and Habits -->
     <div class="row">
       <!-- Weather Card -->
@@ -221,20 +183,149 @@
           </div>
         </div>
       </div>
+      
       <!-- Habits Card -->
       <div class="col-md-6 mb-4">
         <div class="card h-100">
           <div class="card-body">
             <h5 class="card-title">Habits</h5>
+            <small class="text-muted d-block mb-3">Habits reset in : 22h 13m</small>
+            <!-- Add Habit Button -->
+            <button
+              type="button"
+              class="btn btn-success mb-3"
+              data-bs-toggle="modal"
+              data-bs-target="#habitModal"
+              data-action="add"
+            >
+              Add Habit
+            </button>
+            <!-- Active Habits -->
+            <h6>Active</h6>
+            <div class="list-group mb-3">
+              <div
+                class="list-group-item d-flex justify-content-between align-items-center"
+              >
+                Active Habit 1
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#habitModal"
+                  data-action="edit"
+                >
+                  Edit
+                </button>
+              </div>
+              <div
+                class="list-group-item d-flex justify-content-between align-items-center"
+              >
+                Active Habit 2
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#habitModal"
+                  data-action="edit"
+                >
+                  Edit
+                </button>
+              </div>
+              <div
+                class="list-group-item d-flex justify-content-between align-items-center"
+              >
+                Active Habit 3
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#habitModal"
+                  data-action="edit"
+                >
+                  Edit
+                </button>
+              </div>
+            </div>
+            <!-- Scheduled Habits -->
+            <h6>Scheduled</h6>
             <div class="list-group">
-              <div class="list-group-item">Habit Name</div>
-              <div class="list-group-item">Habit Name</div>
-              <div class="list-group-item">Habit Name</div>
+              <div
+                class="list-group-item d-flex justify-content-between align-items-center"
+              >
+                Scheduled Habit 1
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#habitModal"
+                  data-action="edit"
+                >
+                  Edit
+                </button>
+              </div>
+              <div
+                class="list-group-item d-flex justify-content-between align-items-center"
+              >
+                Scheduled Habit 2
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#habitModal"
+                  data-action="edit"
+                >
+                  Edit
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Bootstrap Modal -->
+  <div
+    class="modal fade"
+    id="habitModal"
+    tabindex="-1"
+    aria-labelledby="habitModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="habitModalLabel">Add Habit</h1>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <form id="habitForm">
+            <div class="mb-3">
+              <label for="habitName" class="form-label">Habit Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="habitName"
+                placeholder="Enter habit name"
+              />
+            </div>
+            <!-- Additional form fields can be added here -->
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="confirmButton">
+            Add Habit
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
     
   </div>
   

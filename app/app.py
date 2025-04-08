@@ -149,6 +149,75 @@ def edit_tree():
 
     return jsonify(success=True)
 
+@app.route('/water_tree', methods=['POST'])
+def water_tree():
+    data = request.get_json()
+
+    # Extract and convert parameters
+    tree_index = data.get('index')
+    water_amount = int(data.get('water_amount', 0))
+
+    db = get_db()
+    cursor = db.cursor()
+
+    # Get the rowid of the tree at the given index (ordered by creation date)
+    cursor.execute("SELECT rowid FROM Tree ORDER BY Creation_Date LIMIT 1 OFFSET ?", (tree_index,))
+    tree = cursor.fetchone()
+    if not tree:
+        return jsonify(success=False, error="Tree not found"), 404
+    tree_rowid = tree[0]
+
+    # Get the current water in the garden
+    cursor.execute("SELECT Water FROM Garden LIMIT 1")
+    garden = cursor.fetchone()
+    if not garden:
+        return jsonify(success=False, error="Garden not found"), 404
+    garden_water = int(garden[0])
+    if water_amount > garden_water:
+        return jsonify(success=False, error="Not enough water!"), 403
+
+    # Update the tree's water level
+    cursor.execute("UPDATE Tree SET Water = Water + ? WHERE rowid = ?", (water_amount, tree_rowid))
+    
+    # Check and update the tree's growth if its water exceeds the required threshold
+    check_and_update_tree_growth(db, tree_rowid)
+
+    # Remove the used water from the garden
+    cursor.execute("UPDATE Garden SET Water = Water - ? WHERE rowid = ?", (water_amount, 1))
+    
+    db.commit()
+    return jsonify(success=True)
+
+
+def check_and_update_tree_growth(db, tree_rowid):
+    """
+    Checks if the tree's water level has met or exceeded its required water for growth.
+    If so, increases the tree's Stage by 1, adds 50 to Water_Required, resets the tree's water 
+    to the leftover amount, and repeats if multiple stages are achieved.
+    """
+    cursor = db.cursor()
+    cursor.execute("SELECT Water, Water_Required, Stage FROM Tree WHERE rowid = ?", (tree_rowid,))
+    result = cursor.fetchone()
+    if not result:
+        return
+
+    water, water_required, stage = map(int, result)
+    updated = False
+
+    # While the current water level is enough to grow the tree...
+    while water >= water_required:
+        water -= water_required      # Use up the required water and carry over any extra
+        stage += 1                   # Increase the tree's stage
+        water_required += 50         # Increase water needed for the next stage
+        updated = True
+
+    if updated:
+        cursor.execute(
+            "UPDATE Tree SET Water = ?, Water_Required = ?, Stage = ? WHERE rowid = ?",
+            (water, water_required, stage, tree_rowid)
+        )
+
+
 if __name__ == "__main__":
     with app.app_context():
         init_db()
