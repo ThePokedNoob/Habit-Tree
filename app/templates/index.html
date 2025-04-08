@@ -284,47 +284,99 @@
     </div>
   </div>
 
-  <!-- Bootstrap Modal -->
+  <!-- Bootstrap Add Habit Modal -->
   <div
-    class="modal fade"
-    id="habitModal"
-    tabindex="-1"
-    aria-labelledby="habitModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="habitModalLabel">Add Habit</h1>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <form id="habitForm">
-            <div class="mb-3">
-              <label for="habitName" class="form-label">Habit Name</label>
+  class="modal fade"
+  id="habitModal"
+  tabindex="-1"
+  aria-labelledby="habitModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="habitModalLabel">Add Habit</h1>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="habitForm">
+          <div class="mb-3">
+            <label for="habitName" class="form-label">Habit Name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="habitName"
+              placeholder="Enter habit name"
+            />
+          </div>
+
+          <!-- Priority slider with tooltip and number labels -->
+          <div class="mb-3">
+            <label for="habitPriority" class="form-label">
+              Priority 
+              <span
+                class="ms-1"
+                data-bs-toggle="tooltip"
+                data-bs-placement="top"
+                title="This represents how much water this habit gives, 0 being highest priority, and 5 the lowest."
+                style="cursor: help;"
+              >?</span>
+            </label>
+            <div class="d-flex align-items-center">
+              <span class="me-2">0</span>
               <input
-                type="text"
-                class="form-control"
-                id="habitName"
-                placeholder="Enter habit name"
+                type="range"
+                class="form-range"
+                id="habitPriority"
+                min="0"
+                max="5"
+                step="1"
               />
+              <span class="ms-2">5</span>
             </div>
-            <!-- Additional form fields can be added here -->
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="confirmButton">
-            Add Habit
-          </button>
-        </div>
+          </div>
+
+          <!-- Schedule Habit with days toggle buttons -->
+          <div class="mb-3">
+            <label class="form-label">Schedule Habit</label>
+            <div class="btn-group d-flex flex-wrap" role="group" aria-label="Days of the week">
+              <input type="checkbox" class="btn-check" id="monday" autocomplete="off" />
+              <label class="btn btn-outline-primary m-1" for="monday">Mon</label>
+
+              <input type="checkbox" class="btn-check" id="tuesday" autocomplete="off" />
+              <label class="btn btn-outline-primary m-1" for="tuesday">Tue</label>
+
+              <input type="checkbox" class="btn-check" id="wednesday" autocomplete="off" />
+              <label class="btn btn-outline-primary m-1" for="wednesday">Wed</label>
+
+              <input type="checkbox" class="btn-check" id="thursday" autocomplete="off" />
+              <label class="btn btn-outline-primary m-1" for="thursday">Thu</label>
+
+              <input type="checkbox" class="btn-check" id="friday" autocomplete="off" />
+              <label class="btn btn-outline-primary m-1" for="friday">Fri</label>
+
+              <input type="checkbox" class="btn-check" id="saturday" autocomplete="off" />
+              <label class="btn btn-outline-primary m-1" for="saturday">Sat</label>
+
+              <input type="checkbox" class="btn-check" id="sunday" autocomplete="off" />
+              <label class="btn btn-outline-primary m-1" for="sunday">Sun</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="confirmButton">
+          Add Habit
+        </button>
       </div>
     </div>
   </div>
+</div>
 
     
   </div>

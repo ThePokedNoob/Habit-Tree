@@ -22,6 +22,14 @@ function showTreeDetails(element) {
     document.getElementById('instruction').classList.add('d-none');
 }
 
+// Initialize Bootstrap Tooltips
+document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    });
+
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-tree]').forEach(card => {
         card.addEventListener('click', () => showTreeDetails(card));
