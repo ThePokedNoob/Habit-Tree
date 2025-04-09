@@ -149,6 +149,18 @@ def edit_tree():
 
     return jsonify(success=True)
 
+@app.route('/add_habit', methods=['POST'])
+def add_habit():
+    data = request.get_json()
+    habit_name = data.get('habit_name')
+    habit_priority = data.get('habit_priority')
+    habit_days_of_the_week = data.get('days_of_the_week')
+
+    db = get_db()
+    cursor = db.cursor()
+
+    return jsonify(success=True)
+
 @app.route('/water_tree', methods=['POST'])
 def water_tree():
     data = request.get_json()
