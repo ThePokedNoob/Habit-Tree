@@ -20,7 +20,7 @@ def init_db():
     cursor = db.cursor()
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS Tree (
+        CREATE TABLE IF NOT EXISTS Trees (
             Name TEXT,
             Creation_Date TEXT,
             Stage INTEGER,
@@ -39,6 +39,16 @@ def init_db():
         )   
     ''')
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS Habits (
+            Name TEXT,
+            Creation_Date TEXT,
+            Priority INTEGER,
+            Days_Of_The_Week TEXT,
+            Completed BOOLEAN
+        );
+    ''')
+
     # Initialize the Gaeden table if empty
     cursor.execute("SELECT COUNT(*) FROM Garden")
     garden_count = cursor.fetchone()[0]
@@ -55,7 +65,7 @@ def index():
     db = get_db()
     cursor = db.cursor()
 
-    cursor.execute("SELECT * FROM Tree ORDER BY Creation_Date LIMIT 10")  # Ensure ORDER BY for index purposes
+    cursor.execute("SELECT * FROM Trees ORDER BY Creation_Date LIMIT 10")  # Ensure ORDER BY for index purposes
     trees_data = cursor.fetchall()
 
     # Retrieve the current garden level (assume one garden record)
@@ -122,7 +132,7 @@ def create_tree():
 
     current_date = datetime.date.today().isoformat()  # Get current date as string
     cursor.execute('''
-        INSERT INTO Tree (Name, Creation_Date, Stage, Water, Water_Required)
+        INSERT INTO Trees (Name, Creation_Date, Stage, Water, Water_Required)
         VALUES (?, ?, ?, ?, ?)
     ''', ('My Tree', current_date, 1, 0, 50))  # Use current date
 
@@ -138,13 +148,13 @@ def edit_tree():
     cursor = db.cursor()
 
     # Get the rowid of the tree at the given index ordered by creation date
-    cursor.execute("SELECT rowid FROM Tree ORDER BY Creation_Date LIMIT 1 OFFSET ?", (index,))
+    cursor.execute("SELECT rowid FROM Trees ORDER BY Creation_Date LIMIT 1 OFFSET ?", (index,))
     tree = cursor.fetchone()
     if not tree:
         return jsonify(success=False, error="Tree not found"), 404
 
     rowid = tree[0]
-    cursor.execute("UPDATE Tree SET Name = ? WHERE rowid = ?", (new_name, rowid))
+    cursor.execute("UPDATE Trees SET Name = ? WHERE rowid = ?", (new_name, rowid))
     db.commit()
 
     return jsonify(success=True)
@@ -155,11 +165,15 @@ def add_habit():
     habit_name = data.get('habit_name')
     habit_priority = data.get('habit_priority')
     habit_days_of_the_week = data.get('days_of_the_week')
-
+    # Now insert these into your database
     db = get_db()
     cursor = db.cursor()
 
+    cursor.execute("INSERT INTO Habits (Name, Creation_Date, Priority, Days_Of_The_Week, Completed) VALUES (?, datetime('now'), ?, ?, false)", (habit_name, habit_priority, habit_days_of_the_week))
+    db.commit()
+
     return jsonify(success=True)
+
 
 @app.route('/water_tree', methods=['POST'])
 def water_tree():
@@ -173,7 +187,7 @@ def water_tree():
     cursor = db.cursor()
 
     # Get the rowid of the tree at the given index (ordered by creation date)
-    cursor.execute("SELECT rowid FROM Tree ORDER BY Creation_Date LIMIT 1 OFFSET ?", (tree_index,))
+    cursor.execute("SELECT rowid FROM Trees ORDER BY Creation_Date LIMIT 1 OFFSET ?", (tree_index,))
     tree = cursor.fetchone()
     if not tree:
         return jsonify(success=False, error="Tree not found"), 404
@@ -189,7 +203,7 @@ def water_tree():
         return jsonify(success=False, error="Not enough water!"), 403
 
     # Update the tree's water level
-    cursor.execute("UPDATE Tree SET Water = Water + ? WHERE rowid = ?", (water_amount, tree_rowid))
+    cursor.execute("UPDATE Trees SET Water = Water + ? WHERE rowid = ?", (water_amount, tree_rowid))
     
     # Check and update the tree's growth if its water exceeds the required threshold
     check_and_update_tree_growth(db, tree_rowid)
@@ -208,7 +222,7 @@ def check_and_update_tree_growth(db, tree_rowid):
     to the leftover amount, and repeats if multiple stages are achieved.
     """
     cursor = db.cursor()
-    cursor.execute("SELECT Water, Water_Required, Stage FROM Tree WHERE rowid = ?", (tree_rowid,))
+    cursor.execute("SELECT Water, Water_Required, Stage FROM Trees WHERE rowid = ?", (tree_rowid,))
     result = cursor.fetchone()
     if not result:
         return
@@ -225,7 +239,7 @@ def check_and_update_tree_growth(db, tree_rowid):
 
     if updated:
         cursor.execute(
-            "UPDATE Tree SET Water = ?, Water_Required = ?, Stage = ? WHERE rowid = ?",
+            "UPDATE Trees SET Water = ?, Water_Required = ?, Stage = ? WHERE rowid = ?",
             (water, water_required, stage, tree_rowid)
         )
 
