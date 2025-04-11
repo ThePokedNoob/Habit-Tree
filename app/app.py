@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, render_template, g, redirect, request, url_for
 import datetime
 import sqlite3
+import datetime
 
 DATABASE = "habit_tree_save_file.db"
 
@@ -41,7 +42,7 @@ def init_db():
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS Habits (
-            Name TEXT,
+            Name TEXT PRIMARY KEY,
             Creation_Date TEXT,
             Priority INTEGER,
             Days_Of_The_Week TEXT,
@@ -49,7 +50,7 @@ def init_db():
         );
     ''')
 
-    # Initialize the Gaeden table if empty
+    # Initialize the Garden table if empty
     cursor.execute("SELECT COUNT(*) FROM Garden")
     garden_count = cursor.fetchone()[0]
     if garden_count == 0:
@@ -65,15 +66,17 @@ def index():
     db = get_db()
     cursor = db.cursor()
 
-    cursor.execute("SELECT * FROM Trees ORDER BY Creation_Date LIMIT 10")  # Ensure ORDER BY for index purposes
+    cursor.execute("SELECT * FROM Trees ORDER BY Creation_Date LIMIT 10")
     trees_data = cursor.fetchall()
 
-    # Retrieve the current garden level (assume one garden record)
+    cursor.execute("SELECT * FROM Habits")
+    habits_data = cursor.fetchall()
+
+    # Retrieve the current garden values as before...
     cursor.execute("SELECT Level FROM Garden LIMIT 1")
     garden_row = cursor.fetchone()
     garden_level = garden_row[0] if garden_row else 1
 
-    # Retrieve the current water (assume one garden record)
     cursor.execute("SELECT Water FROM Garden LIMIT 1")
     garden_row = cursor.fetchone()
     garden_water = garden_row[0] if garden_row else 1
@@ -89,9 +92,7 @@ def index():
     trees = []
     for i in range(10):
         required_level = TREE_REQUIREMENTS[i]
-        # Check if the player has reached the required level for this tree slot
         if garden_level >= required_level:
-            # If a tree already exists in this slot, display its data
             if i < len(trees_data):
                 tree_row = trees_data[i]
                 trees.append({
@@ -104,23 +105,49 @@ def index():
                     "required_level": required_level
                 })
             else:
-                # Slot is unlocked but no tree planted yet
                 trees.append({
                     "unlocked": True,
                     "planted": False,
                     "required_level": required_level
                 })
         else:
-            # Tree slot is locked because the required garden level has not been reached
             trees.append({
                 "unlocked": False,
                 "planted": False,
                 "required_level": required_level
             })
 
-    return render_template("index.html", trees=trees, garden_level=garden_level, garden_water=garden_water, garden_experience=garden_experience, garden_experience_required=garden_experience_required)
+    # Determine the current day, e.g., "Monday"
+    current_day = datetime.datetime.now().strftime("%A")
+    active_habits = []
+    scheduled_habits = []
 
-@app.route('/plant', methods=['POST'])
+    # Process habits_data assuming each row is (Name, Creation_Date, Priority, Days_Of_The_Week, Completed)
+    for habit in habits_data:
+        # Split the comma-separated days and strip any extra whitespace
+        days_list = [day.strip() for day in habit[3].split(',')]
+        habit_dict = {
+            "name": habit[0],
+            "creation_date": habit[1],
+            "priority": habit[2],
+            "days": habit[3],
+            "completed": habit[4]
+        }
+        if current_day in days_list:
+            active_habits.append(habit_dict)
+        else:
+            scheduled_habits.append(habit_dict)
+
+    return render_template("index.html",
+                           trees=trees,
+                           active_habits=active_habits,
+                           scheduled_habits=scheduled_habits,
+                           garden_level=garden_level,
+                           garden_water=garden_water,
+                           garden_experience=garden_experience,
+                           garden_experience_required=garden_experience_required)
+
+@app.route('/plant_tree', methods=['POST'])
 def plant_tree():
     # Add your tree planting logic here
     create_tree()
@@ -138,7 +165,7 @@ def create_tree():
 
     db.commit()
 
-@app.route('/edit', methods=['POST'])
+@app.route('/edit_tree', methods=['POST'])
 def edit_tree():
     data = request.get_json()
     new_name = data.get('name')
@@ -165,11 +192,34 @@ def add_habit():
     habit_name = data.get('habit_name')
     habit_priority = data.get('habit_priority')
     habit_days_of_the_week = data.get('days_of_the_week')
-    # Now insert these into your database
+    
     db = get_db()
     cursor = db.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO Habits (Name, Creation_Date, Priority, Days_Of_The_Week, Completed) VALUES (?, datetime('now'), ?, ?, false)",
+            (habit_name, habit_priority, habit_days_of_the_week)
+        )
+        db.commit()
+    except sqlite3.IntegrityError:
+        # This error will be raised if the habit_name already exists.
+        return jsonify(success=False, error="A habit with that name already exists."), 400
 
-    cursor.execute("INSERT INTO Habits (Name, Creation_Date, Priority, Days_Of_The_Week, Completed) VALUES (?, datetime('now'), ?, ?, false)", (habit_name, habit_priority, habit_days_of_the_week))
+    return jsonify(success=True)
+
+@app.route('/complete_habit', methods=['POST'])
+def complete_habit():
+    data = request.get_json()
+    habit_name = data.get('habit_name')
+    
+    if not habit_name:
+        return jsonify(success=False, error="Not tree name passed!"), 403
+
+    db = get_db()
+    cursor = db.cursor()
+    
+    # Update the habit in the database
+    cursor.execute("UPDATE Habits SET Completed = 1 WHERE Name = ?", (habit_name,))
     db.commit()
 
     return jsonify(success=True)
