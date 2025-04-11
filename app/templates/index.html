@@ -209,11 +209,14 @@
                                 {{ habit.name }}
                                 <div>
                                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                        data-bs-target="#habitModal" data-action="edit">
+                                        data-bs-target="#habitModal" data-action="edit" data-habit-id="{{ habit.id }}"
+                                        data-habit-name="{{ habit.name }}" data-habit-priority="{{ habit.priority }}"
+                                        data-habit-days="{{ habit.days }}">
                                         Edit
                                     </button>
                                     {% if not habit.completed %}
-                                    <button type="button" class="btn btn-sm btn-success" onclick="completeHabit('{{ habit.name }}')">Mark as complete</button>
+                                    <button type="button" class="btn btn-sm btn-success"
+                                        onclick="completeHabit('{{ habit.name }}')">Mark as complete</button>
                                     {% else %}
                                     <button type="button" class="btn btn-sm btn-success" disabled>Completed</button>
                                     {% endif %}
@@ -223,7 +226,6 @@
                             <div class="list-group-item">No active habits</div>
                             {% endfor %}
                         </div>
-
                         <!-- Scheduled Habits -->
                         <h6>Scheduled</h6>
                         <div class="list-group">
@@ -231,7 +233,9 @@
                             <div class="list-group-item d-flex justify-content-between align-items-center">
                                 {{ habit.name }}
                                 <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#habitModal" data-action="edit">
+                                    data-bs-target="#habitModal" data-action="edit" data-habit-id="{{ habit.id }}"
+                                    data-habit-name="{{ habit.name }}" data-habit-priority="{{ habit.priority }}"
+                                    data-habit-days="{{ habit.days | join(',') }}">
                                     Edit
                                 </button>
                             </div>
@@ -280,26 +284,26 @@
                                 <div class="mb-3">
                                     <label class="form-label">Schedule Habit</label>
                                     <div class="btn-group d-flex flex-wrap" role="group" aria-label="Days of the week">
-                                        <input type="checkbox" class="btn-check" id="monday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="monday">Mon</label>
+                                        <input type="checkbox" class="btn-check" id="Monday" autocomplete="off" />
+                                        <label class="btn btn-outline-primary m-1" for="Monday">Mon</label>
 
-                                        <input type="checkbox" class="btn-check" id="tuesday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="tuesday">Tue</label>
+                                        <input type="checkbox" class="btn-check" id="Tuesday" autocomplete="off" />
+                                        <label class="btn btn-outline-primary m-1" for="Tuesday">Tue</label>
 
-                                        <input type="checkbox" class="btn-check" id="wednesday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="wednesday">Wed</label>
+                                        <input type="checkbox" class="btn-check" id="Wednesday" autocomplete="off" />
+                                        <label class="btn btn-outline-primary m-1" for="Wednesday">Wed</label>
 
-                                        <input type="checkbox" class="btn-check" id="thursday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="thursday">Thu</label>
+                                        <input type="checkbox" class="btn-check" id="Thursday" autocomplete="off" />
+                                        <label class="btn btn-outline-primary m-1" for="Thursday">Thu</label>
 
-                                        <input type="checkbox" class="btn-check" id="friday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="friday">Fri</label>
+                                        <input type="checkbox" class="btn-check" id="Friday" autocomplete="off" />
+                                        <label class="btn btn-outline-primary m-1" for="Friday">Fri</label>
 
-                                        <input type="checkbox" class="btn-check" id="saturday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="saturday">Sat</label>
+                                        <input type="checkbox" class="btn-check" id="Saturday" autocomplete="off" />
+                                        <label class="btn btn-outline-primary m-1" for="Saturday">Sat</label>
 
-                                        <input type="checkbox" class="btn-check" id="sunday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="sunday">Sun</label>
+                                        <input type="checkbox" class="btn-check" id="Sunday" autocomplete="off" />
+                                        <label class="btn btn-outline-primary m-1" for="Sunday">Sun</label>
                                     </div>
                                 </div>
                             </form>

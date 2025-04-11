@@ -118,17 +118,41 @@ document.addEventListener('DOMContentLoaded', () => {
     habitModal.addEventListener("show.bs.modal", function (event) {
         const button = event.relatedTarget;
         const action = button.getAttribute("data-action");
+
         const modalTitle = habitModal.querySelector(".modal-title");
         const confirmButton = habitModal.querySelector("#confirmButton");
+
+        const habitNameInput = document.getElementById('habitName');
+        const habitPriorityInput = document.getElementById('habitPriority');
+        const dayIds = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
         if (action === "edit") {
             modalTitle.textContent = "Edit Habit";
             confirmButton.textContent = "Confirm Edit";
             confirmButton.dataset.action = "edit";
+
+            // Get habit details from data attributes of the button.
+            var habitName = button.getAttribute('data-habit-name') ;
+            var habitPriority = button.getAttribute('data-habit-priority');
+            const habitDaysStr = button.getAttribute("data-habit-days");
+            const habitDays = habitDaysStr.split(",").map(day => day.trim());
+
+            // Pre-fill the input fields.
+            habitNameInput.value = habitName || '';
+            habitPriorityInput.value = habitPriority || 0;
+            dayIds.forEach(function (day) {
+                const checkbox = document.getElementById(day);
+                if (checkbox) {
+                    checkbox.checked = habitDays.includes(day);
+                }
+            });
         } else {
             modalTitle.textContent = "Add Habit";
             confirmButton.textContent = "Add Habit";
             confirmButton.dataset.action = "add";
+
+            // Clear all input values.
+            habitModal.querySelector("form").reset();
         }
     });
 
