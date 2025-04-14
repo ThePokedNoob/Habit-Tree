@@ -207,6 +207,37 @@ def add_habit():
 
     return jsonify(success=True)
 
+@app.route('/edit_habit', methods=['POST'])
+def edit_habit():
+    data = request.get_json()
+    # Extract values from the JSON body
+    existing_habit_name = data.get('existing_habit_name')
+    new_habit_name = data.get('new_habit_name')
+    habit_priority = data.get('habit_priority')
+    habit_days_of_the_week = data.get('days_of_the_week')
+    
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        # Execute update statement
+        cursor.execute('''
+            UPDATE Habits 
+            SET Name = ?, Priority = ?, Days_Of_The_Week = ?
+            WHERE Name = ?
+        ''', (new_habit_name, habit_priority, habit_days_of_the_week, existing_habit_name))
+        db.commit()
+        
+        # Check if any row was actually updated.
+        if cursor.rowcount == 0:
+            return jsonify(success=False, error="No habit found with that name."), 404
+            
+    except sqlite3.IntegrityError:
+        # This error is raised if the new habit name already exists in the database.
+        return jsonify(success=False, error="The new habit name already exists."), 400
+
+    return jsonify(success=True)
+
+
 @app.route('/complete_habit', methods=['POST'])
 def complete_habit():
     data = request.get_json()

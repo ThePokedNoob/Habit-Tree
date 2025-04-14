@@ -136,6 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
             var habitPriority = button.getAttribute('data-habit-priority');
             const habitDaysStr = button.getAttribute("data-habit-days");
             const habitDays = habitDaysStr.split(",").map(day => day.trim());
+            confirmButton.dataset.existingHabitName = habitName;
 
             // Pre-fill the input fields.
             habitNameInput.value = habitName || '';
@@ -175,19 +176,47 @@ document.addEventListener('DOMContentLoaded', () => {
         // Join selected days into a CSV string.
         const daysCSV = selectedDays.join(',');
 
-
-        // Create the data object to send via POST.
-        const data = {
-            habit_name: habitNameElem.value,
-            habit_priority: habitPriorityElem.value,
-            days_of_the_week: daysCSV // or send the array directly if your API is set up to handle it
-        };
-
         // Based on the action, handle accordingly.
         if (action === "edit") {
-            console.log("Editing habit...");
-            // Call your editHabit() function if available.
+            // Create the data object to send via POST.
+            const data = {
+                existing_habit_name: confirmButton.dataset.existingHabitName,
+                new_habit_name: habitNameElem.value,
+                habit_priority: habitPriorityElem.value,
+                days_of_the_week: daysCSV
+            };
+
+            fetch('/edit_habit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Success:', response);
+                        window.location.reload()
+                    } else {
+                        // Try to parse JSON error response
+                        response.json().then(data => {
+                            errorText.textContent = data.error || 'Failed to add habit. Please try again.';
+                        }).catch(() => {
+                            errorText.textContent = 'An unexpected error occurred.';
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
         } else if (action === "add") {
+            // Create the data object to send via POST.
+            const data = {
+                habit_name: habitNameElem.value,
+                habit_priority: habitPriorityElem.value,
+                days_of_the_week: daysCSV // or send the array directly if your API is set up to handle it
+            };
+
             // POST the data to your Flask API endpoint.
             fetch('/add_habit', {
                 method: 'POST',
