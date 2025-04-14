@@ -32,16 +32,21 @@
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center">
                             <img src="/static/experience.png" class="me-2" style="height: 2em;">
-                            <div class="d-flex flex-column">
+                            <div class="d-flex flex-column align-items-center">
                                 <span class="mb-1">Garden Level: {{ garden_level }}</span>
-                                <!-- Optionally, update the progress bar width dynamically.
-                                    For example, if your maximum level is 50, you might do a calculation:
-                                    style="width: {{ (garden_level / 50) * 100 }}%;" and adjust the text accordingly. -->
-                                <div class="progress">
-                                    <div class="progress-bar progress-bar-striped bg-warning" role="progressbar"
-                                        style="width: {{ garden_experience }}%" aria-valuenow="{{ garden_experience }}"
-                                        aria-valuemin="0" aria-valuemax="{{ garden_experience_required }}">{{
-                                        garden_experience }}/{{ garden_experience_required }} </div>
+                                <!-- The relative container allows the inner absolute element to be positioned relative to the progress bar -->
+                                <div class="position-relative w-100">
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped bg-warning" role="progressbar"
+                                            style="width: {{ (garden_experience / garden_experience_required * 100) | round(0) }}%;"
+                                            aria-valuenow="{{ garden_experience }}" aria-valuemin="0"
+                                            aria-valuemax="{{ garden_experience_required }}">
+                                        </div>
+                                    </div> `
+                                    <!-- Absolutely position the text so it's always centered over the progress bar -->
+                                    <div class="position-absolute top-50 start-50 translate-middle text-dark">
+                                        {{ garden_experience }}/{{ garden_experience_required }}
+                                    </div>
                                 </div>
                             </div>
             </div>
@@ -68,7 +73,11 @@
                         <div class="card me-2" style="min-width: 150px; cursor: pointer;" data-tree="true"
                             data-index="{{ loop.index0 }}" data-name="{{ tree.name }}" data-water="{{ tree.water }}"
                             data-stage="{{ tree.stage }}" data-water-required="{{ tree.water_required }}">
-                            <img src="/static/tree_stage_6.png" class="card-img-top" alt="Tree Stage">
+                            <!-- Wrapper div for centering with original image size -->
+                            <div class="text-center p-2">
+                                <img src="/static/tree_stage_{{tree.stage}}.png" class="d-inline-block"
+                                    alt="Tree Stage">
+                            </div>
                             <div class="card-body text-center">
                                 <h6 class="card-title mb-2">{{ tree.name }}</h6>
                                 <div class="progress" style="height: 20px; position: relative;">
@@ -233,10 +242,10 @@
                             <div class="list-group-item d-flex justify-content-between align-items-center">
                                 {{ habit.name }}
                                 <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                        data-bs-target="#habitModal" data-action="edit" data-habit-id="{{ habit.id }}"
-                                        data-habit-name="{{ habit.name }}" data-habit-priority="{{ habit.priority }}"
-                                        data-habit-days="{{ habit.days }}">
-                                        Edit
+                                    data-bs-target="#habitModal" data-action="edit" data-habit-id="{{ habit.id }}"
+                                    data-habit-name="{{ habit.name }}" data-habit-priority="{{ habit.priority }}"
+                                    data-habit-days="{{ habit.days }}">
+                                    Edit
                                 </button>
                             </div>
                             {% else %}

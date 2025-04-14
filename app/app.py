@@ -251,6 +251,13 @@ def complete_habit():
     
     # Update the habit in the database
     cursor.execute("UPDATE Habits SET Completed = 1 WHERE Name = ?", (habit_name,))
+    
+    # Add water to garden
+    cursor.execute("UPDATE Garden SET Water = Water + ? WHERE rowid = ?", (100000, 1))
+    
+    # Add experience to garden
+    add_garden_experience(db, 200)
+    
     db.commit()
 
     return jsonify(success=True)
@@ -295,6 +302,33 @@ def water_tree():
     db.commit()
     return jsonify(success=True)
 
+def add_garden_experience(db, amount):
+    cursor = db.cursor()
+    # Retrieve the current garden record. Adjust your query if you have multiple rows.
+    cursor.execute("SELECT Level, Experience, Experience_Required FROM Garden LIMIT 1")
+    row = cursor.fetchone()
+
+    if row is None:
+        raise ValueError("No garden record found in the database.")
+
+    level, current_exp, exp_required = row
+    new_exp_total = current_exp + amount
+
+    # Loop to handle possible multiple level-ups.
+    while new_exp_total >= exp_required:
+        new_exp_total -= exp_required
+        level += 1
+        # Increase the required experience for the next level by 50.
+        exp_required += 50
+
+    # Update the Garden record with the new level, remaining experience, and updated requirement.
+    cursor.execute("""
+        UPDATE Garden
+        SET Level = ?, Experience = ?, Experience_Required = ?
+        WHERE rowid = (SELECT rowid FROM Garden LIMIT 1)
+    """, (level, new_exp_total, exp_required))
+    db.commit()
+
 
 def check_and_update_tree_growth(db, tree_rowid):
     """
@@ -323,7 +357,6 @@ def check_and_update_tree_growth(db, tree_rowid):
             "UPDATE Trees SET Water = ?, Water_Required = ?, Stage = ? WHERE rowid = ?",
             (water, water_required, stage, tree_rowid)
         )
-
 
 if __name__ == "__main__":
     with app.app_context():
