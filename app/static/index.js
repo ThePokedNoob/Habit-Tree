@@ -4,22 +4,56 @@ function showTreeDetails(element) {
     const water = element.dataset.water;
     const stage = element.dataset.stage;
     const waterRequired = element.dataset.waterRequired;
+    const lastWatered = element.dataset.lastWatered;
 
     // Update details card
     document.getElementById('treeDetailsTitle').value = name;
     document.getElementById('treeStage').textContent = `Stage: ${stage}`;
+
+    // Format last watered time
+    const lastWateredDate = new Date(lastWatered);
+    const timeAgo = getTimeAgo(lastWateredDate);
+    document.getElementById('treeLastWatered').textContent = `Last watered: ${timeAgo}`;
+
     document.getElementById('treeWater').textContent = water;
     document.getElementById('treeWaterRequired').textContent = waterRequired;
     const progress = (water / waterRequired * 100).toFixed(2);
     document.getElementById('treeProgressBar').style.width = `${progress}%`;
     document.getElementById('treeProgressText').textContent = `${water}/${waterRequired}`;
-
+    
     // Store index in the details card
     document.getElementById('treeDetailsCard').dataset.index = index;
 
     // Toggle visibility
     document.getElementById('treeDetailsCard').classList.remove('d-none');
     document.getElementById('instruction').classList.add('d-none');
+}
+
+function getTimeAgo(lastWateredDate) {
+    const now = new Date();
+    const diffMs = now - lastWateredDate;
+
+    // Handle future dates gracefully
+    if (diffMs < 0) {
+        return 'just now';
+    }
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    const parts = [];
+    if (days > 0) {
+        parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+    }
+    if (hours > 0) {
+        parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+    }
+    if (minutes > 0) {
+        parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+    }
+
+    return parts.length === 0 ? 'just now' : `${parts.join(' ')} ago`;
 }
 
 function completeHabit(habitName) {

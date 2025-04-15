@@ -49,7 +49,8 @@ def init_db():
                 Creation_Date TEXT,
                 Stage INTEGER,
                 Water INTEGER,
-                Water_Required INTEGER
+                Water_Required INTEGER,
+                Last_Watered TEXT
             )
         ''',
         'Garden': '''
@@ -136,7 +137,8 @@ def process_trees(trees_data, garden_level):
                 "name": trees_data[i]['Name'],
                 "stage": trees_data[i]['Stage'],
                 "water": trees_data[i]['Water'],
-                "water_required": trees_data[i]['Water_Required']
+                "water_required": trees_data[i]['Water_Required'],
+                "last_watered": trees_data[i]['Last_Watered']  # This now includes both date and time
             })
         
         trees.append(tree)
@@ -203,11 +205,12 @@ def index():
 def plant_tree():
     """Plant a new tree in the first available slot"""
     db = get_db()
+    now = datetime.datetime.now().isoformat()  # This returns the full date and time in ISO format
     with db:
         db.execute('''
-            INSERT INTO Trees (Name, Creation_Date, Stage, Water, Water_Required)
-            VALUES (?, ?, 1, 0, 50)
-        ''', ('My Tree', datetime.date.today().isoformat()))
+            INSERT INTO Trees (Name, Creation_Date, Stage, Water, Water_Required, Last_Watered)
+            VALUES (?, ?, 1, 0, 50, ?)
+        ''', ('My Tree', now, now))
     return redirect(url_for('index'))
 
 @app.route('/edit_tree', methods=['POST'])

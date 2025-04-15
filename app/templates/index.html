@@ -42,7 +42,7 @@
                                             aria-valuenow="{{ garden.experience }}" aria-valuemin="0"
                                             aria-valuemax="{{ garden.experience_required }}">
                                         </div>
-                                    </div> `
+                                    </div>
                                     <!-- Absolutely position the text so it's always centered over the progress bar -->
                                     <div class="position-absolute top-50 start-50 translate-middle text-dark">
                                         {{ garden.experience }}/{{ garden.experience_required }}
@@ -72,7 +72,7 @@
                         <!-- Clickable Planted Tree Card -->
                         <div class="card me-2" style="min-width: 150px; cursor: pointer;" data-tree="true"
                             data-index="{{ loop.index0 }}" data-name="{{ tree.name }}" data-water="{{ tree.water }}"
-                            data-stage="{{ tree.stage }}" data-water-required="{{ tree.water_required }}">
+                            data-stage="{{ tree.stage }}" data-water-required="{{ tree.water_required }}" data-last-watered="{{ tree.last_watered }}">
                             <!-- Wrapper div for centering with original image size -->
                             <div class="text-center p-2">
                                 <img src="/static/tree_stage_{{tree.stage}}.png" class="d-inline-block"
@@ -140,7 +140,7 @@
                 </div>
                 <!-- Additional Tree Details -->
                 <p class="card-text mb-1" id="treeStage"><strong>Stage:</strong> 0</p>
-                <p class="card-text mb-3"><strong>Last watered:</strong> 3 days ago</p>
+                <p class="card-text mb-3" id="treeLastWatered"><strong>Last watered:</strong> 3 days ago</p>
                 <!-- Water Information and Progress -->
                 <p class="card-text">
                     Water: <span id="treeWater">0</span>/<span id="treeWaterRequired">0</span>
