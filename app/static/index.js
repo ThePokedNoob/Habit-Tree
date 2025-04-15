@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // Update the add habit modal text based on which button triggered the modal.
+    // Update the add/edit habit modal text based on which button triggered the modal.
     const habitModal = document.getElementById("habitModal");
 
     habitModal.addEventListener("show.bs.modal", function (event) {
@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const modalTitle = habitModal.querySelector(".modal-title");
         const confirmButton = habitModal.querySelector("#confirmButton");
+        const deleteHabitButton = document.getElementById("deleteHabitButton");
 
         const habitNameInput = document.getElementById('habitName');
         const habitPriorityInput = document.getElementById('habitPriority');
@@ -132,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmButton.dataset.action = "edit";
 
             // Get habit details from data attributes of the button.
-            var habitName = button.getAttribute('data-habit-name') ;
+            var habitName = button.getAttribute('data-habit-name');
             var habitPriority = button.getAttribute('data-habit-priority');
             const habitDaysStr = button.getAttribute("data-habit-days");
             const habitDays = habitDaysStr.split(",").map(day => day.trim());
@@ -147,38 +148,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     checkbox.checked = habitDays.includes(day);
                 }
             });
+            // Show the delete button in edit mode.
+            deleteHabitButton.style.display = "inline-block";
         } else {
             modalTitle.textContent = "Add Habit";
             confirmButton.textContent = "Add Habit";
             confirmButton.dataset.action = "add";
-
+            // Hide the delete button in add mode.
+            deleteHabitButton.style.display = "none";
             // Clear all input values.
             habitModal.querySelector("form").reset();
         }
     });
 
-    // Add click event listener to the confirm button of adding/editing habit
+    // Add click event listener to the confirm button (for add/edit habit)
     const confirmButton = document.getElementById("confirmButton");
     confirmButton.addEventListener("click", function () {
-        // Determine the action (edit or add)
         const action = confirmButton.dataset.action;
         const habitNameElem = document.getElementById('habitName');
         const habitPriorityElem = document.getElementById('habitPriority');
         const errorText = document.getElementById('addHabitErrorText');
 
         // Get all checked day checkboxes and convert their ids to a proper day name.
-        const selectedDays = Array.from(document.querySelectorAll("input.btn-check:checked"))
-            .map(checkbox => {
-                // Convert "monday" to "Monday", "tuesday" to "Tuesday", etc.
-                return checkbox.id.charAt(0).toUpperCase() + checkbox.id.slice(1);
-            });
+        const selectedDays = Array.from(document.querySelectorAll("input.btn-check:checked")).map(checkbox => {
+            return checkbox.id.charAt(0).toUpperCase() + checkbox.id.slice(1);
+        });
 
-        // Join selected days into a CSV string.
         const daysCSV = selectedDays.join(',');
 
-        // Based on the action, handle accordingly.
         if (action === "edit") {
-            // Create the data object to send via POST.
             const data = {
                 existing_habit_name: confirmButton.dataset.existingHabitName,
                 new_habit_name: habitNameElem.value,
@@ -188,17 +186,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
             fetch('/edit_habit', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
                 .then(response => {
                     if (response.ok) {
-                        console.log('Success:', response);
-                        window.location.reload()
+                        window.location.reload();
                     } else {
-                        // Try to parse JSON error response
+                        response.json().then(data => {
+                            errorText.textContent = data.error || 'Failed to edit habit. Please try again.';
+                        }).catch(() => {
+                            errorText.textContent = 'An unexpected error occurred.';
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        } else if (action === "add") {
+            const data = {
+                habit_name: habitNameElem.value,
+                habit_priority: habitPriorityElem.value,
+                days_of_the_week: daysCSV
+            };
+
+            fetch('/add_habit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
                         response.json().then(data => {
                             errorText.textContent = data.error || 'Failed to add habit. Please try again.';
                         }).catch(() => {
@@ -209,30 +229,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(error => {
                     console.error('Error:', error);
                 });
-        } else if (action === "add") {
-            // Create the data object to send via POST.
-            const data = {
-                habit_name: habitNameElem.value,
-                habit_priority: habitPriorityElem.value,
-                days_of_the_week: daysCSV // or send the array directly if your API is set up to handle it
-            };
+        }
+    });
 
-            // POST the data to your Flask API endpoint.
-            fetch('/add_habit', {
+    // Add click event listener for the delete habit button.
+    const deleteHabitButton = document.getElementById("deleteHabitButton");
+    deleteHabitButton.addEventListener("click", function () {
+        const habitNameElem = document.getElementById('habitName');
+        const habitName = habitNameElem.value;
+        const errorText = document.getElementById('addHabitErrorText');
+
+        if (confirm("Are you sure you want to delete this habit? This action cannot be undone.")) {
+            // Send POST request with the habit name.
+            const data = { habit_name: habitName };
+            fetch('/delete_habit', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
                 .then(response => {
                     if (response.ok) {
-                        console.log('Success:', response);
-                        window.location.reload()
+                        window.location.reload();
                     } else {
-                        // Try to parse JSON error response
                         response.json().then(data => {
-                            errorText.textContent = data.error || 'Failed to add habit. Please try again.';
+                            errorText.textContent = data.error || 'Failed to delete habit. Please try again.';
                         }).catch(() => {
                             errorText.textContent = 'An unexpected error occurred.';
                         });

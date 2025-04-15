@@ -356,6 +356,27 @@ def edit_habit():
 
     return jsonify(success=True)
 
+@app.route('/delete_habit', methods=['POST'])
+def delete_habit():
+    data = request.get_json()
+    # Extract values from the JSON body
+    habit_name = data.get('habit_name')
+    
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('''
+        DELETE FROM Habits 
+        WHERE Name = ?
+    ''', (habit_name,))
+    db.commit()
+    
+    # Check if any row was actually deleted.
+    if cursor.rowcount == 0:
+        return jsonify(success=False, error="No habit found with that name."), 404
+
+    return jsonify(success=True)
+
 @app.route('/complete_habit', methods=['POST'])
 def complete_habit():
     """Mark a habit as completed and reward resources"""
