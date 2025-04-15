@@ -3,13 +3,15 @@ import datetime
 import sqlite3
 import datetime
 
+# --------------------------
+# Configuration Constants
+# --------------------------
 DATABASE = "habit_tree_save_file.db"
+TREE_REQUIREMENTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+WATER_REQUIRED_INCREASE_PER_STAGE_PERCENTAGE = 50
+EXPERIENCE_REQUIRED_INCREASE_PER_LEVEL_PERCENTAGE = 50
 
 app = Flask(__name__)
-
-# Configuration: tree requirements for each of 10 tree slots.
-# For example, the first slot requires level 1, the second level 2, and so on.
-TREE_REQUIREMENTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 def get_db():
     if 'db' not in g:
@@ -318,8 +320,9 @@ def add_garden_experience(db, amount):
     while new_exp_total >= exp_required:
         new_exp_total -= exp_required
         level += 1
-        # Increase the required experience for the next level by 50.
-        exp_required += 50
+        # Increase the required experience for the next level by the config variable.
+        exp_required += exp_required / 100 * EXPERIENCE_REQUIRED_INCREASE_PER_LEVEL_PERCENTAGE
+        exp_required = round(exp_required, -1)  # rounds to one decimal place (nearest tenth)
 
     # Update the Garden record with the new level, remaining experience, and updated requirement.
     cursor.execute("""
@@ -347,9 +350,15 @@ def check_and_update_tree_growth(db, tree_rowid):
 
     # While the current water level is enough to grow the tree...
     while water >= water_required:
-        water -= water_required      # Use up the required water and carry over any extra
-        stage += 1                   # Increase the tree's stage
-        water_required += 50         # Increase water needed for the next stage
+        # Use up the required water and carry over any extra
+        water -= water_required 
+        
+        # Increase stage
+        stage += 1
+        
+        # Increase water needed for the next stage
+        water_required += water_required / 100 * WATER_REQUIRED_INCREASE_PER_STAGE_PERCENTAGE
+        water_required = round(water_required, -1)  # rounds to one decimal place (nearest tenth)
         updated = True
 
     if updated:
@@ -362,3 +371,4 @@ if __name__ == "__main__":
     with app.app_context():
         init_db()
     app.run(debug=True)
+                  # Increase the tree's stage
