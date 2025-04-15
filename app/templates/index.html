@@ -23,7 +23,7 @@
                     <li class="nav-item">
                         <a class="nav-link">
                             <img src="/static/water_drop.png" class="me-2" style="height: 2em;">
-                            Water: {{ garden_water }}
+                            Water: {{ garden.water }}
                         </a>
                     </li>
                 </ul>
@@ -33,19 +33,19 @@
                         <a class="nav-link d-flex align-items-center">
                             <img src="/static/experience.png" class="me-2" style="height: 2em;">
                             <div class="d-flex flex-column align-items-center">
-                                <span class="mb-1">Garden Level: {{ garden_level }}</span>
+                                <span class="mb-1">Garden Level: {{ garden.level }}</span>
                                 <!-- The relative container allows the inner absolute element to be positioned relative to the progress bar -->
                                 <div class="position-relative w-100">
                                     <div class="progress">
                                         <div class="progress-bar progress-bar-striped bg-warning" role="progressbar"
-                                            style="width: {{ (garden_experience / garden_experience_required * 100) | round(0) }}%;"
-                                            aria-valuenow="{{ garden_experience }}" aria-valuemin="0"
-                                            aria-valuemax="{{ garden_experience_required }}">
+                                            style="width: {{ (garden.experience / garden.experience_required * 100) | round(0) }}%;"
+                                            aria-valuenow="{{ garden.experience }}" aria-valuemin="0"
+                                            aria-valuemax="{{ garden.experience_required }}">
                                         </div>
                                     </div> `
                                     <!-- Absolutely position the text so it's always centered over the progress bar -->
                                     <div class="position-absolute top-50 start-50 translate-middle text-dark">
-                                        {{ garden_experience }}/{{ garden_experience_required }}
+                                        {{ garden.experience }}/{{ garden.experience_required }}
                                     </div>
                                 </div>
                             </div>
