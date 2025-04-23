@@ -27,7 +27,7 @@ app = Flask(__name__)
 def get_db():
     """Get or create SQLite database connection using Flask's g object"""
     if 'db' not in g:
-        g.db = sqlite3.connect(DATABASE)
+        g.db = sqlite3.connect(DATABASE, timeout=20)  # Increased timeout
         g.db.row_factory = sqlite3.Row  # Return rows as dictionaries
     return g.db
 
