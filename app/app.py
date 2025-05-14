@@ -26,7 +26,7 @@ app = Flask(__name__)
 
 def get_db():
     """Get or create SQLite database connection using Flask's g object"""
-    if 'db' not in g:
+    if 'db' not in g:   
         g.db = sqlite3.connect(DATABASE, timeout=20)  # Increased timeout
         g.db.row_factory = sqlite3.Row  # Return rows as dictionaries
     return g.db
@@ -50,7 +50,8 @@ def init_db():
                 Stage INTEGER,
                 Water INTEGER,
                 Water_Required INTEGER,
-                Last_Watered TEXT
+                Last_Watered TEXT,
+                Moisture INTEGER
             )
         ''',
         'Garden': '''
@@ -138,7 +139,8 @@ def process_trees(trees_data, garden_level):
                 "stage": trees_data[i]['Stage'],
                 "water": trees_data[i]['Water'],
                 "water_required": trees_data[i]['Water_Required'],
-                "last_watered": trees_data[i]['Last_Watered']  # This now includes both date and time
+                "last_watered": trees_data[i]['Last_Watered'],
+                "moisture": trees_data[i]["Moisture"]
             })
         
         trees.append(tree)
@@ -208,8 +210,8 @@ def plant_tree():
     now = datetime.datetime.now().isoformat()  # This returns the full date and time in ISO format
     with db:
         db.execute('''
-            INSERT INTO Trees (Name, Creation_Date, Stage, Water, Water_Required, Last_Watered)
-            VALUES (?, ?, 1, 0, 50, ?)
+            INSERT INTO Trees (Name, Creation_Date, Stage, Water, Water_Required, Last_Watered, Moisture)
+            VALUES (?, ?, 1, 0, 50, ?, 60)
         ''', ('My Tree', now, now))
     return redirect(url_for('index'))
 

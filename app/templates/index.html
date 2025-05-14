@@ -56,11 +56,8 @@
         </div>
         </div>
     </nav>
-
-
     <div class="container my-4">
         <h1 class="mb-4 text-center">Your Garden</h1>
-
         <!-- Card for Trees with Horizontal Scroll -->
         <div class="card mb-4">
             <div class="card-body">
@@ -72,25 +69,42 @@
                         <!-- Clickable Planted Tree Card -->
                         <div class="card me-2" style="min-width: 150px; cursor: pointer;" data-tree="true"
                             data-index="{{ loop.index0 }}" data-name="{{ tree.name }}" data-water="{{ tree.water }}"
-                            data-stage="{{ tree.stage }}" data-water-required="{{ tree.water_required }}" data-last-watered="{{ tree.last_watered }}">
+                            data-stage="{{ tree.stage }}" data-water-required="{{ tree.water_required }}"
+                            data-last-watered="{{ tree.last_watered }}">
                             <!-- Wrapper div for centering with original image size -->
                             <div class="text-center p-2">
-                                <img src="/static/tree_stage_{{tree.stage}}.png" class="d-inline-block"
+                                <img src="/static/tree_stage_{{ tree.stage }}.png" class="d-inline-block"
                                     alt="Tree Stage">
                             </div>
+
                             <div class="card-body text-center">
                                 <h6 class="card-title mb-2">{{ tree.name }}</h6>
+
+                                <!-- Progress Bar -->
                                 <div class="progress" style="height: 20px; position: relative;">
                                     <div class="progress-bar bg-success" role="progressbar"
-                                        style="width: {{ (tree.water/tree.water_required * 100) if tree.water_required else 0 }}%;"
+                                        style="width: {{ (tree.water / tree.water_required * 100) if tree.water_required else 0 }}%;"
                                         aria-valuenow="{{ tree.water }}" aria-valuemin="0"
-                                        aria-valuemax="{{ tree.water_required }}">
-                                    </div>
-                                    <div
-                                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                                        aria-valuemax="{{ tree.water_required }}"></div>
+                                    <div style="position: absolute; top: 0; left: 0;
+               width: 100%; height: 100%;
+               display: flex; align-items: center;
+               justify-content: center; pointer-events: none;">
                                         {{ tree.water }}/{{ tree.water_required }}
                                     </div>
                                 </div>
+
+                                {# Moisture label below #}
+                                {% set m = tree.moisture %}
+                                <p class="
+        mt-2
+        {% if m < 30 %}text-danger{% elif m < 50 %}text-warning
+        {% elif m < 70 %}text-secondary{% elif m < 90 %}text-success
+        {% else %}text-info{% endif %}
+      ">
+                                    {% if m < 30 %} Very Dry {% elif m < 50 %} Dry {% elif m < 70 %} Neutral {% elif m <
+                                        90 %} Healthy {% else %} Too moist {% endif %} </p>
+
                             </div>
                         </div>
                         {% else %}
