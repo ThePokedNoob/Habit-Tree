@@ -8,17 +8,47 @@ Includes garden leveling system and daily habit tracking.
 from flask import Flask, jsonify, render_template, g, redirect, request, url_for
 import sqlite3
 import datetime
+import random
 
-# --------------------------
-# Configuration Constants
-# --------------------------
-
+# Configuration
 DATABASE = "habit_tree_save_file.db"
 TREE_REQUIREMENTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]     # Level requirements for each tree slot
 REQUIRED_WATER_INCREASE_PER_STAGE_PERCENTAGE = 50       # The increase of the required water to the next stage as a percentage of the current required water
 REQUIRED_EXPERIENCE_INCREASE_PER_LEVEL_PERCENTAGE = 50  # The increase of the required experience to the next level as a percentage of the current required experience
 
+DEFAULT_TEMP = 25
+DEFAULT_HUM  = 50
+DEFAULT_STATE = 30
+
+TEMP_DELTA_RANGE = (-5, 5)
+HUM_DELTA_RANGE  = (-5, 5)
+STATE_DELTA_RANGE = (-5, 5)
+
+HUMIDITY_TEMP_INFLUENCE = 0.5
+STATE_HUM_INFLUENCE      = 0.4
+STATE_TEMP_INFLUENCE     = 0.2
+
 app = Flask(__name__)
+
+
+def state_to_text(state):
+    """Convert numeric state (0–100) into weather description."""
+    s = float(state)
+    if 0 <= s <= 20:
+        return "Sunny"
+    elif 21 <= s <= 40:
+        return "Partly Cloudy"
+    elif 41 <= s <= 60:
+        return "Cloudy"
+    elif 61 <= s <= 80:
+        return "Rainy"
+    elif 81 <= s <= 100:
+        return "Thunderstorm"
+    else:
+        return "Unknown"
+
+# Register as jinja filter
+app.jinja_env.filters['state_text'] = state_to_text
 
 # --------------------------
 # Database Helper Functions
@@ -27,7 +57,7 @@ app = Flask(__name__)
 def get_db():
     """Get or create SQLite database connection using Flask's g object"""
     if 'db' not in g:   
-        g.db = sqlite3.connect(DATABASE, timeout=20)  # Increased timeout
+        g.db = sqlite3.connect(DATABASE, timeout=2)
         g.db.row_factory = sqlite3.Row  # Return rows as dictionaries
     return g.db
 
@@ -70,6 +100,20 @@ def init_db():
                 Priority INTEGER,
                 Days_Of_The_Week TEXT,
                 Completed BOOLEAN
+            )
+        ''',
+        'Weather': '''
+            CREATE TABLE IF NOT EXISTS Weather (
+                Id          INTEGER PRIMARY KEY,
+                Temperature INTEGER NOT NULL,
+                Humidity    INTEGER NOT NULL,
+                State       INTEGER NOT NULL
+            )
+        ''',
+        'Meta': '''
+            CREATE TABLE IF NOT EXISTS Meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
             )
         '''
     }
@@ -114,6 +158,50 @@ def get_habits_data(db):
         SELECT Name, Creation_Date, Priority, Days_Of_The_Week, Completed 
         FROM Habits
     ''').fetchall()
+    
+
+def get_all_weather(db):
+    """Return all weather rows ordered oldest→newest"""
+    return db.execute('''
+        SELECT Temperature, Humidity, State
+        FROM Weather
+        ORDER BY ROWID ASC
+    ''').fetchall()
+    
+def get_weather_count(db):
+    """Return number of rows in Weather."""
+    cur = db.execute('SELECT COUNT(*) FROM Weather')
+    return cur.fetchone()[0]
+
+def get_last_weather(db):
+    """Return the last (most recent) weather row."""
+    return db.execute('''
+        SELECT Temperature, Humidity, State 
+        FROM Weather
+        ORDER BY Temperature DESC
+        LIMIT 1
+    ''').fetchone()
+    
+def get_meta(db, key):
+    cur = db.execute('SELECT value FROM Meta WHERE key = ?', (key,))
+    row = cur.fetchone()
+    return row[0] if row else None
+
+def set_meta(db, key, value):
+    db.execute('''
+        INSERT INTO Meta(key, value)
+        VALUES(?, ?)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value
+    ''', (key, value))
+    db.commit()
+    
+    
+def insert_weather(db, temp, hum, state):
+    db.execute('''
+        INSERT OR REPLACE INTO Weather (Temperature, Humidity, State)
+        VALUES (?, ?, ?)
+    ''', (int(temp), int(hum), int(state)))
+    db.commit()
 
 # --------------------------
 # Business Logic
@@ -194,13 +282,15 @@ def add_experience(db, amount):
 def index():
     """Main dashboard showing garden status, trees, and habits"""
     db = get_db()
+    check_time(db)
     active, scheduled = process_habits(get_habits_data(db))
     
     return render_template("index.html",
         trees=process_trees(get_trees_data(db), get_garden_data(db)['Level']),
         active_habits=active,
         scheduled_habits=scheduled,
-        garden=get_garden_data(db)
+        garden=get_garden_data(db),
+        weather=get_all_weather(db)
 )
 
 @app.route('/plant_tree', methods=['POST'])
@@ -406,10 +496,114 @@ def complete_habit():
     return jsonify(success=True)
 
 # --------------------------
+# Weather
+# --------------------------
+
+
+def simulate_weather(db, n_days=4):
+    """
+    Ensure there are at most n_days rows in Weather.
+    If empty, seed day 1 with defaults.
+    Then:
+      - If already have n_days rows, delete the oldest (first) one.
+      - Generate one new day from the last remaining row.
+    Returns the oldest row after this update (i.e. the “new” day 1).
+    """
+    # 1. Count how many days we currently have
+    count = get_weather_count(db)
+
+    # 2. If empty, seed the very first day
+    if count == 0:
+        insert_weather(db, DEFAULT_TEMP, DEFAULT_HUM, DEFAULT_STATE)
+        count = 1
+
+    # 3. If we already have n_days, rotate out the oldest one
+    if count >= n_days:
+        # delete exactly enough so that count == n_days - 1
+        to_delete = count - (n_days - 1)
+        for _ in range(to_delete):
+            db.execute('''
+                DELETE FROM Weather
+                WHERE ROWID = (
+                    SELECT ROWID FROM Weather
+                    ORDER BY ROWID ASC
+                    LIMIT 1
+                )
+            ''')
+        db.commit()
+        count = get_weather_count(db)
+
+    # 4. Now count < n_days, so generate the next day(s)
+    #    (in practice only one loop iteration when rotating)
+    while count < n_days:
+        temp_prev, hum_prev, state_prev = get_last_weather(db)
+
+        # Temperature: random delta
+        temp_delta = random.randint(*TEMP_DELTA_RANGE)
+        temp_curr = temp_prev + temp_delta
+
+        # Humidity: prev + random delta - influence × (temp_curr − default)
+        hum_delta = random.uniform(*HUM_DELTA_RANGE)
+        hum_curr = (
+            hum_prev
+            + hum_delta
+            - HUMIDITY_TEMP_INFLUENCE * (temp_curr - DEFAULT_TEMP)
+        )
+
+        # State: prev + random delta + influences
+        state_delta = random.uniform(*STATE_DELTA_RANGE)
+        state_curr = (
+            state_prev
+            + state_delta
+            + STATE_HUM_INFLUENCE * (hum_curr - DEFAULT_HUM)
+            + STATE_TEMP_INFLUENCE * (temp_curr - DEFAULT_TEMP)
+        )
+
+        insert_weather(db, temp_curr, hum_curr, state_curr)
+        count += 1
+
+    # 5. Return the oldest row (new day 1) for consistency with your API
+    return db.execute('''
+        SELECT Temperature, Humidity, State
+        FROM Weather
+        ORDER BY ROWID ASC
+        LIMIT 1
+    ''').fetchone()
+
+# --------------------------
 # Application Setup
 # --------------------------
+
+
+def check_time(db):
+    # Fetch last run; parse it if present
+    last_run_text = get_meta(db, 'weather_last_run')
+    now = datetime.datetime.utcnow()  # use UTC to avoid DST troubles
+
+    if last_run_text is None:
+        # First time ever—just record and exit
+        set_meta(db, 'weather_last_run', now.isoformat())
+        return 0
+
+    # Compute how many full days have elapsed
+    last_run = datetime.datetime.fromisoformat(last_run_text)
+    delta = now - last_run
+    days_elapsed = delta.days  # integer number of 24h periods
+
+    # If at least one full day has passed, simulate for each day
+    runs = 0
+    for _ in range(days_elapsed):
+        simulate_weather(db)
+        runs += 1
+
+    # Update the last‐run timestamp (advance by days_elapsed days)
+    # so we don’t “lose” any leftover hours.
+    new_last_run = last_run + datetime.timedelta(days=days_elapsed)
+    set_meta(db, 'weather_last_run', new_last_run.isoformat())
+
+    return runs
 
 if __name__ == '__main__':
     with app.app_context():
         init_db()
-    app.run(debug=True)
+    app.run(debug=True) 

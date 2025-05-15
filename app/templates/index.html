@@ -154,7 +154,7 @@
                 </div>
                 <!-- Additional Tree Details -->
                 <p class="card-text mb-1" id="treeStage"><strong>Stage:</strong> 0</p>
-                <p class="card-text mb-3" id="treeLastWatered"><strong>Last watered:</strong> 3 days ago</p>
+                <p class="card-text mb-1" id="treeLastWatered"><strong>Last watered:</strong> 3 days ago</p>
                 <!-- Water Information and Progress -->
                 <p class="card-text">
                     Water: <span id="treeWater">0</span>/<span id="treeWaterRequired">0</span>
@@ -207,10 +207,43 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title">Weather</h5>
-                        <p class="card-text">[Weather placeholder]</p>
+
+                        <!-- Today Section -->
+                        <div class="text-center mb-2">
+                            <h6 class="mb-1">Today</h6>
+                        </div>
+                        <div class="d-flex justify-content-center mb-4">
+                            {% set today = weather[0] %}
+                            <div class="card text-center me-2" style="width: 8rem;">
+                                <div class="card-body">
+                                    <h4 class="card-title">{{ today.Temperature }}°C</h4>
+                                    <p class="card-text mb-1">Humidity: {{ today.Humidity }}%</p>
+                                    <p class="card-text">{{ today.State | state_text }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Section -->
+                        <div class="text-center mb-2">
+                            <h6 class="mb-1">Upcoming</h6>
+                        </div>
+                        <div class="d-flex justify-content-center flex-wrap">
+                            {% for day in weather[1:] %}
+                            <div class="card text-center m-2" style="width: 8rem;">
+                                <div class="card-body">
+                                    <h4 class="card-title">{{ day.Temperature }}°C</h4>
+                                    <p class="card-text mb-1">Humidity: {{ day.Humidity }}%</p>
+                                    <p class="card-text">{{ day.State | state_text }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+
                     </div>
                 </div>
             </div>
+
 
             <!-- Habits Card -->
             <div class="col-md-6 mb-4">
