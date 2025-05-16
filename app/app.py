@@ -16,17 +16,26 @@ TREE_REQUIREMENTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]     # Level requirements for
 REQUIRED_WATER_INCREASE_PER_STAGE_PERCENTAGE = 50       # The increase of the required water to the next stage as a percentage of the current required water
 REQUIRED_EXPERIENCE_INCREASE_PER_LEVEL_PERCENTAGE = 50  # The increase of the required experience to the next level as a percentage of the current required experience
 
-DEFAULT_TEMP = 25
-DEFAULT_HUM  = 50
-DEFAULT_STATE = 30
+# Default constants
+DEFAULT_TEMP = 25.0
+DEFAULT_HUM = 50.0
+DEFAULT_STATE = 30.0
 
+# Ranges for random deltas
 TEMP_DELTA_RANGE = (-5, 5)
-HUM_DELTA_RANGE  = (-5, 5)
-STATE_DELTA_RANGE = (-5, 5)
+HUM_DELTA_RANGE = (-5.0, 5.0)
+STATE_DELTA_RANGE = (-5.0, 5.0)
 
+# Influence weights
 HUMIDITY_TEMP_INFLUENCE = 0.5
-STATE_HUM_INFLUENCE      = 0.4
-STATE_TEMP_INFLUENCE     = 0.2
+STATE_HUM_INFLUENCE = 0.4
+STATE_TEMP_INFLUENCE = 0.2
+
+# Value bounds
+MIN_TEMP, MAX_TEMP = -50.0, 60.0
+MIN_HUM, MAX_HUM = 0.0, 100.0
+MIN_STATE, MAX_STATE = 0.0, 100.0
+
 
 app = Flask(__name__)
 
@@ -130,6 +139,10 @@ def init_db():
                 INSERT INTO Garden (Creation_Date, Level, Experience, Experience_Required, Water)
                 VALUES (?, 1, 0, 100, 0)
             ''', (datetime.date.today().isoformat(),))
+            
+        # Initialize weather if empty
+        if not cursor.execute("SELECT 1 FROM Weather LIMIT 1").fetchone():
+            simulate_weather(db)
 
 # --------------------------
 # Data Access Layer
@@ -499,76 +512,96 @@ def complete_habit():
 # Weather
 # --------------------------
 
+def clamp(value, min_val, max_val):
+    """Clamp a value to the provided bounds."""
+    return max(min_val, min(max_val, value))
+
 
 def simulate_weather(db, n_days=4):
     """
-    Ensure there are at most n_days rows in Weather.
-    If empty, seed day 1 with defaults.
-    Then:
-      - If already have n_days rows, delete the oldest (first) one.
-      - Generate one new day from the last remaining row.
-    Returns the oldest row after this update (i.e. the “new” day 1).
+    Run a rolling window of at most n_days in the Weather table.
+    If empty, seed with default values. Each new day is computed from the latest.
+    Returns the row for the oldest (new day 1) after update.
     """
-    # 1. Count how many days we currently have
+    # 1. Ensure table exists
+    db.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS Weather (
+            Temperature REAL,
+            Humidity REAL,
+            State REAL
+        )
+        '''
+    )
+    db.commit()
+
+    # 2. Count existing rows
     count = get_weather_count(db)
 
-    # 2. If empty, seed the very first day
+    # 3. Seed defaults if empty
     if count == 0:
         insert_weather(db, DEFAULT_TEMP, DEFAULT_HUM, DEFAULT_STATE)
         count = 1
 
-    # 3. If we already have n_days, rotate out the oldest one
+    # 4. Rotate out oldest to keep at most n_days-1 existing
     if count >= n_days:
-        # delete exactly enough so that count == n_days - 1
         to_delete = count - (n_days - 1)
         for _ in range(to_delete):
-            db.execute('''
+            db.execute(
+                '''
                 DELETE FROM Weather
                 WHERE ROWID = (
                     SELECT ROWID FROM Weather
-                    ORDER BY ROWID ASC
-                    LIMIT 1
+                    ORDER BY ROWID ASC LIMIT 1
                 )
-            ''')
+                '''
+            )
         db.commit()
         count = get_weather_count(db)
 
-    # 4. Now count < n_days, so generate the next day(s)
-    #    (in practice only one loop iteration when rotating)
+    # 5. Append new days until we have n_days
     while count < n_days:
         temp_prev, hum_prev, state_prev = get_last_weather(db)
 
-        # Temperature: random delta
+        # Temperature update and clamp
         temp_delta = random.randint(*TEMP_DELTA_RANGE)
-        temp_curr = temp_prev + temp_delta
-
-        # Humidity: prev + random delta - influence × (temp_curr − default)
-        hum_delta = random.uniform(*HUM_DELTA_RANGE)
-        hum_curr = (
-            hum_prev
-            + hum_delta
-            - HUMIDITY_TEMP_INFLUENCE * (temp_curr - DEFAULT_TEMP)
+        temp_curr = clamp(
+            temp_prev + temp_delta,
+            MIN_TEMP,
+            MAX_TEMP
         )
 
-        # State: prev + random delta + influences
+        # Humidity update and clamp
+        hum_delta = random.uniform(*HUM_DELTA_RANGE)
+        hum_curr = clamp(
+            hum_prev + hum_delta
+            - HUMIDITY_TEMP_INFLUENCE * (temp_curr - DEFAULT_TEMP),
+            MIN_HUM,
+            MAX_HUM
+        )
+
+        # State update and clamp
         state_delta = random.uniform(*STATE_DELTA_RANGE)
-        state_curr = (
+        state_curr = clamp(
             state_prev
             + state_delta
             + STATE_HUM_INFLUENCE * (hum_curr - DEFAULT_HUM)
-            + STATE_TEMP_INFLUENCE * (temp_curr - DEFAULT_TEMP)
+            + STATE_TEMP_INFLUENCE * (temp_curr - DEFAULT_TEMP),
+            MIN_STATE,
+            MAX_STATE
         )
 
         insert_weather(db, temp_curr, hum_curr, state_curr)
         count += 1
 
-    # 5. Return the oldest row (new day 1) for consistency with your API
-    return db.execute('''
+    # 6. Return the oldest (new day 1)
+    return db.execute(
+        '''
         SELECT Temperature, Humidity, State
         FROM Weather
-        ORDER BY ROWID ASC
-        LIMIT 1
-    ''').fetchone()
+        ORDER BY ROWID ASC LIMIT 1
+        '''
+    ).fetchone()
 
 # --------------------------
 # Application Setup
