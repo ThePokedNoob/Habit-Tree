@@ -32,14 +32,9 @@ STATE_HUM_INFLUENCE = 0.4
 STATE_TEMP_INFLUENCE = 0.2
 
 # Value bounds
-MIN_TEMP, MAX_TEMP = -5.0, 35.0
+MIN_TEMP, MAX_TEMP = -50.0, 60.0
 MIN_HUM, MAX_HUM = 0.0, 100.0
 MIN_STATE, MAX_STATE = 0.0, 100.0
-
-# Drifts
-DRIFT_TEMP = 0.2        # pull back toward DEFAULT_TEMP
-DRIFT_HUM  = 0.2        # pull back toward DEFAULT_HUM
-DRIFT_STATE = 0.2       # pull back toward DEFAULT_STATE
 
 
 app = Flask(__name__)
@@ -568,36 +563,34 @@ def simulate_weather(db, n_days=4):
     while count < n_days:
         temp_prev, hum_prev, state_prev = get_last_weather(db)
 
-        # 1) Temperature
-        temp_delta = random.uniform(*TEMP_DELTA_RANGE)
+        # Temperature update and clamp
+        temp_delta = random.randint(*TEMP_DELTA_RANGE)
         temp_curr = clamp(
-            temp_prev
-            + temp_delta
-            + DRIFT_TEMP * (DEFAULT_TEMP - temp_prev),
-            MIN_TEMP, MAX_TEMP
+            temp_prev + temp_delta,
+            MIN_TEMP,
+            MAX_TEMP
         )
 
-        # 2) Humidity (step-based temp influence + its own drift)
+        # Humidity update and clamp
         hum_delta = random.uniform(*HUM_DELTA_RANGE)
         hum_curr = clamp(
-            hum_prev
-            + hum_delta
-            - HUMIDITY_TEMP_INFLUENCE * (temp_curr - temp_prev)
-            + DRIFT_HUM * (DEFAULT_HUM - hum_prev),
-            MIN_HUM, MAX_HUM
+            hum_prev + hum_delta
+            - HUMIDITY_TEMP_INFLUENCE * (temp_curr - DEFAULT_TEMP),
+            MIN_HUM,
+            MAX_HUM
         )
 
-        # 3) State (step-based cross-influences + its own drift)
+        # State update and clamp
         state_delta = random.uniform(*STATE_DELTA_RANGE)
         state_curr = clamp(
             state_prev
             + state_delta
-            + STATE_HUM_INFLUENCE * (hum_curr - hum_prev)
-            + STATE_TEMP_INFLUENCE * (temp_curr - temp_prev)
-            + DRIFT_STATE * (DEFAULT_STATE - state_prev),
-            MIN_STATE, MAX_STATE
+            + STATE_HUM_INFLUENCE * (hum_curr - DEFAULT_HUM)
+            + STATE_TEMP_INFLUENCE * (temp_curr - DEFAULT_TEMP),
+            MIN_STATE,
+            MAX_STATE
         )
-        
+
         insert_weather(db, temp_curr, hum_curr, state_curr)
         count += 1
 
