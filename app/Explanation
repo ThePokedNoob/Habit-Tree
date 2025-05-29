@@ -1,0 +1,9 @@
+The dependancy flow:
+
+Routes → Services → Models → Database
+
+
+Routes: Flask HTTP handling request/response type shi
+
+Services: Logic 
+Models: 
