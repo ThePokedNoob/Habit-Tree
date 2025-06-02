@@ -1,4 +1,5 @@
 import datetime
+from models.tree import TreeModel
 
 class HabitService:
     def __init__(self, habit_model, garden_service):
@@ -27,6 +28,32 @@ class HabitService:
                 scheduled.append(habit_dict)
         
         return active, scheduled
+    
+    def calculate_water_reward(self, habit_priority):
+        """Calculate water reward based on priority and tree count"""
+        from config import WATER_PER_TREE, PRIORITY_WEIGHTS
+        
+        # Get total trees to determine water pool
+        tree_count = len(TreeModel.get_all_trees())
+        if tree_count == 0:
+            return 0
+            
+        total_water_pool = tree_count * WATER_PER_TREE
+        
+        # Get all incomplete habits to calculate weight distribution
+        incomplete_habits = self.get_incomplete_habits()
+        if not incomplete_habits:
+            return total_water_pool  # If only one habit, give full amount
+            
+        # Calculate total weight of all incomplete habits
+        total_weight = sum(PRIORITY_WEIGHTS.get(habit['priority'], 1.0) 
+                          for habit in incomplete_habits)
+        
+        # Calculate this habit's share
+        habit_weight = PRIORITY_WEIGHTS.get(habit_priority, 1.0)
+        water_reward = int((habit_weight / total_weight) * total_water_pool)
+        
+        return water_reward
     
     def complete_habit(self, habit_name):
         """Mark a habit as completed and reward resources"""

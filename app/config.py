@@ -26,3 +26,11 @@ MIN_STATE, MAX_STATE = 0.0, 100.0
 DRIFT_TEMP = 0.2
 DRIFT_HUM = 0.2
 DRIFT_STATE = 0.2
+
+# Water distribution settings
+WATER_PER_TREE = 50  # Base water amount per tree
+PRIORITY_WEIGHTS = {
+    1: 0.5,   # Low priority gets 50% weight
+    2: 1.0,   # Medium priority gets 100% weight  
+    3: 2.0    # High priority gets 200% weight
+}
