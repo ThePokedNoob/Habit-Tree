@@ -29,6 +29,10 @@ class HabitService:
         
         return active, scheduled
     
+    def reset_daily_habits(self):
+        """Reset all habits to incomplete for the new day"""
+        self.habit_model.reset_all_habits()
+    
     def calculate_water_reward(self, habit_priority):
         """Calculate water reward based on priority and tree count"""
         from config import WATER_PER_TREE, PRIORITY_WEIGHTS

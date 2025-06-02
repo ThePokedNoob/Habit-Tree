@@ -54,26 +54,3 @@ class WeatherService:
             
             self.weather_model.insert_weather(temp_curr, hum_curr, state_curr)
             count += 1
-    
-    def check_time(self):
-        """Check if weather simulation needs to run based on elapsed time"""
-        last_run_text = self.weather_model.get_meta('weather_last_run')
-        now = datetime.datetime.utcnow()
-        
-        if last_run_text is None:
-            self.weather_model.set_meta('weather_last_run', now.isoformat())
-            return 0
-        
-        last_run = datetime.datetime.fromisoformat(last_run_text)
-        delta = now - last_run
-        days_elapsed = delta.days
-        
-        runs = 0
-        for _ in range(days_elapsed):
-            self.simulate_weather()
-            runs += 1
-        
-        new_last_run = last_run + datetime.timedelta(days=days_elapsed)
-        self.weather_model.set_meta('weather_last_run', new_last_run.isoformat())
-        
-        return runs

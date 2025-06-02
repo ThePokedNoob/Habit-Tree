@@ -54,3 +54,8 @@ class HabitModel:
                 WHERE Name = ?
             ''', (name,))
             return result.rowcount > 0
+    
+    def reset_all_habits(self):
+        """Reset all habits to incomplete"""
+        with self.db:
+            self.db.execute('UPDATE Habits SET Completed = 0')

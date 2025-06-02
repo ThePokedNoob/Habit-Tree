@@ -62,3 +62,12 @@ def init_db():
                 INSERT INTO Garden (Creation_Date, Level, Experience, Experience_Required, Water)
                 VALUES (?, 1, 0, 100, 0)
             ''', (datetime.date.today().isoformat(),))
+            
+        # Initialize weather with default values if empty
+        if not cursor.execute("SELECT 1 FROM Weather LIMIT 1").fetchone():
+            from models import WeatherModel
+            from services import WeatherService
+            
+            weather_model = WeatherModel(db)
+            weather_service = WeatherService(weather_model)
+            weather_service.simulate_weather(n_days=4)

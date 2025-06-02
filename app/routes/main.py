@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template
 from database import get_db
 from models import GardenModel, TreeModel, HabitModel, WeatherModel
-from services import GardenService, TreeService, HabitService, WeatherService
+from services import GardenService, TreeService, HabitService, TimeService
+import datetime
 
 main_bp = Blueprint('main', __name__)
 
@@ -21,6 +22,28 @@ def state_to_text(state):
     else:
         return "Unknown"
 
+def calculate_time_until_day_ends(weather_model):
+    """Calculate time remaining until day ends"""
+    last_run_text = weather_model.get_meta('global_last_run')
+    if not last_run_text:
+        return "Unknown"
+    
+    try:
+        last_run = datetime.datetime.fromisoformat(last_run_text)
+        next_day = last_run + datetime.timedelta(days=1)
+        now = datetime.datetime.utcnow()
+        
+        if now >= next_day:
+            return "Day ended"
+        
+        time_left = next_day - now
+        hours = time_left.seconds // 3600
+        minutes = (time_left.seconds % 3600) // 60
+        
+        return f"{hours}h {minutes}m"
+    except:
+        return "Unknown"
+
 @main_bp.route('/')
 def index():
     """Main dashboard showing garden status, trees, and habits"""
@@ -36,16 +59,17 @@ def index():
     garden_service = GardenService(garden_model)
     tree_service = TreeService(tree_model, garden_model)
     habit_service = HabitService(habit_model, garden_service)
-    weather_service = WeatherService(weather_model)
+    time_service = TimeService()
     
-    # Check time and update weather
-    weather_service.check_time()
+    # Check time and trigger global daily updates
+    time_service.trigger_daily_updates()
     
     # Get processed data
     garden_data = garden_model.get_garden_data()
     active_habits, scheduled_habits = habit_service.process_habits()
     trees = tree_service.process_trees(garden_data['Level'])
     weather = weather_model.get_all_weather()
+    time_until_day_ends = calculate_time_until_day_ends(weather_model)
     
     return render_template("index.html",
         trees=trees,
@@ -53,5 +77,6 @@ def index():
         scheduled_habits=scheduled_habits,
         garden=garden_data,
         weather=weather,
+        time_until_day_ends=time_until_day_ends,
         state_to_text=state_to_text
     )

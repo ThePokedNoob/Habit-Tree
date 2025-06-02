@@ -15,14 +15,22 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
-            <a class="navbar-brand" href="">
+            <a class="navbar-brand d-flex align-items-center" href="">
                 <img src="/static/tree_stage_6.png" class="me-2" style="height: 2.5em;">
                 Habit Tree
             </a>
+
+            <!-- (Optional) Navbar toggler if you need collapse behavior on small screens -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Left-side nav items -->
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link">
+                        <a class="nav-link d-flex align-items-center">
                             <img src="/static/water_drop.png" class="me-2" style="height: 2em;">
                             Water: {{ garden.water }}
                         </a>
@@ -41,8 +49,7 @@
                                         <div class="progress-bar progress-bar-striped bg-warning" role="progressbar"
                                             style="width: {{ (garden.experience / garden.experience_required * 100) | round(0) }}%;"
                                             aria-valuenow="{{ garden.experience }}" aria-valuemin="0"
-                                            aria-valuemax="{{ garden.experience_required }}">
-                                        </div>
+                                            aria-valuemax="{{ garden.experience_required }}"></div>
                                     </div>
                                     <!-- Absolutely position the text so it's always centered over the progress bar -->
                                     <div class="position-absolute top-50 start-50 translate-middle text-dark">
@@ -50,13 +57,22 @@
                                     </div>
                                 </div>
                             </div>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Right-side "Day ends in" text -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item d-flex align-items-center">
+                        <span class="navbar-text">
+                            Day ends in: <strong>{{ time_until_day_ends }}</strong>
+                        </span>
+                    </li>
+                </ul>
             </div>
-            </a>
-            </li>
-            </ul>
-        </div>
         </div>
     </nav>
+
     <div class="container my-4">
         <h1 class="mb-4 text-center">Your Garden</h1>
         <!-- Card for Trees with Horizontal Scroll -->
@@ -251,7 +267,6 @@
                 <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title">Habits</h5>
-                        <small class="text-muted d-block mb-3">Habits reset in : 22h 13m</small>
                         <!-- Add Habit Button -->
                         <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal"
                             data-bs-target="#habitModal" data-action="add">
