@@ -50,3 +50,23 @@ class TreeModel:
                 SET Water = ?, Stage = ?, Water_Required = ? 
                 WHERE rowid = ?
             ''', (water, stage, water_required, tree_id))
+    
+    def update_tree_moisture(self, tree_id, moisture):
+        """Update tree moisture level"""
+        with self.db:
+            self.db.execute('''
+                UPDATE Trees 
+                SET Moisture = ? 
+                WHERE rowid = ?
+            ''', (moisture, tree_id))
+    
+    def update_last_watered(self, tree_id):
+        """Update the last watered timestamp"""
+        import datetime
+        now = datetime.datetime.now().isoformat()
+        with self.db:
+            self.db.execute('''
+                UPDATE Trees 
+                SET Last_Watered = ? 
+                WHERE rowid = ?
+            ''', (now, tree_id))

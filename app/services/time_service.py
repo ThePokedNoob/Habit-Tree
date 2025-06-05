@@ -32,33 +32,37 @@ class TimeService:
         
         if days_elapsed > 0:
             # Import services here to avoid circular imports
-            from services import WeatherService, HabitService
-            from models import WeatherModel, HabitModel, GardenModel
+            from services import WeatherService, HabitService, TreeService
+            from models import WeatherModel, HabitModel, GardenModel, TreeModel
             from services import GardenService
             
             # Initialize models and services
             weather_model = WeatherModel(self.db)
             habit_model = HabitModel(self.db)
             garden_model = GardenModel(self.db)
+            tree_model = TreeModel(self.db)
             
             weather_service = WeatherService(weather_model)
             garden_service = GardenService(garden_model)
             habit_service = HabitService(habit_model, garden_service)
+            tree_service = TreeService(tree_model, garden_model)
             
             # Run daily updates for each elapsed day
             for _ in range(days_elapsed):
-                self._run_daily_cycle(weather_service, habit_service)
+                self._run_daily_cycle(weather_service, habit_service, tree_service)
         
         return days_elapsed
     
-    def _run_daily_cycle(self, weather_service, habit_service):
+    def _run_daily_cycle(self, weather_service, habit_service, tree_service):
         """Run a single day's worth of updates"""
-        # Update weather
+        # Update weather first
         weather_service.simulate_weather()
+        
+        # Get current weather for tree updates
+        current_weather = self.weather_model.get_last_weather()
+        
+        # Update trees with new weather
+        tree_service.daily_tree_update(current_weather)
         
         # Reset habits for new day
         habit_service.reset_daily_habits()
-        
-        # Add other daily services here as needed
-        # tree_service.daily_tree_update()
-        # garden_service.daily_garden_update()

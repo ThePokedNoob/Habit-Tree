@@ -34,3 +34,15 @@ PRIORITY_WEIGHTS = {
     2: 1.0,   # Medium priority gets 100% weight  
     3: 2.0    # High priority gets 200% weight
 }
+
+# Tree moisture settings
+DEFAULT_MOISTURE = 60
+HUMIDITY_INFLUENCE = 0.3
+TEMP_INFLUENCE = 0.2
+WEATHER_STATE_INFLUENCE = 0.3
+MIN_MOISTURE, MAX_MOISTURE = 0, 100
+
+# Watering moisture settings
+WATER_TO_MOISTURE_RATIO = 4  # Every 4 water = 1 moisture point
+MOISTURE_BOOST_THRESHOLD = 35  # Below this, moisture gains are boosted
+MOISTURE_BOOST_MULTIPLIER = 2.0  # Boost multiplier for low moisture
