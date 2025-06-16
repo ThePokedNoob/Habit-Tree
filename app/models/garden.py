@@ -5,7 +5,7 @@ class GardenModel:
     def get_garden_data(self):
         """Retrieve current garden status"""
         return self.db.execute('''
-            SELECT Level, Experience, Experience_Required, Water 
+            SELECT Level, Experience, Experience_Required, Water, Daily_Water_Earned
             FROM Garden 
             LIMIT 1
         ''').fetchone()
@@ -25,3 +25,16 @@ class GardenModel:
                 UPDATE Garden 
                 SET Water = Water + ?
             ''', (water_amount,))
+    
+    def add_daily_water_earned(self, water_amount):
+        """Add to daily water earned counter"""
+        with self.db:
+            self.db.execute('''
+                UPDATE Garden 
+                SET Daily_Water_Earned = Daily_Water_Earned + ?
+            ''', (water_amount,))
+    
+    def reset_daily_water_earned(self):
+        """Reset daily water earned counter"""
+        with self.db:
+            self.db.execute('UPDATE Garden SET Daily_Water_Earned = 0')

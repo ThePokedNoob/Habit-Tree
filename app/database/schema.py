@@ -23,7 +23,8 @@ def init_db():
                 Level INTEGER,
                 Experience INTEGER,
                 Experience_Required INTEGER,
-                Water INTEGER
+                Water INTEGER,
+                Daily_Water_Earned INTEGER DEFAULT 0
             )
         ''',
         'Habits': '''
@@ -56,11 +57,17 @@ def init_db():
         for table, schema in tables.items():
             cursor.execute(schema)
         
+        # Add Daily_Water_Earned column if it doesn't exist (for existing databases)
+        try:
+            cursor.execute('ALTER TABLE Garden ADD COLUMN Daily_Water_Earned INTEGER DEFAULT 0')
+        except:
+            pass  # Column already exists
+        
         # Initialize garden with default values if empty
         if not cursor.execute("SELECT 1 FROM Garden LIMIT 1").fetchone():
             cursor.execute('''
-                INSERT INTO Garden (Creation_Date, Level, Experience, Experience_Required, Water)
-                VALUES (?, 1, 0, 100, 0)
+                INSERT INTO Garden (Creation_Date, Level, Experience, Experience_Required, Water, Daily_Water_Earned)
+                VALUES (?, 1, 0, 100, 0, 0)
             ''', (datetime.date.today().isoformat(),))
             
         # Initialize weather with default values if empty

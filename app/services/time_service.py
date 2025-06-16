@@ -49,11 +49,11 @@ class TimeService:
             
             # Run daily updates for each elapsed day
             for _ in range(days_elapsed):
-                self._run_daily_cycle(weather_service, habit_service, tree_service)
+                self._run_daily_cycle(weather_service, habit_service, tree_service, garden_model)
         
         return days_elapsed
     
-    def _run_daily_cycle(self, weather_service, habit_service, tree_service):
+    def _run_daily_cycle(self, weather_service, habit_service, tree_service, garden_model):
         """Run a single day's worth of updates"""
         # Update weather first
         weather_service.simulate_weather()
@@ -66,3 +66,6 @@ class TimeService:
         
         # Reset habits for new day
         habit_service.reset_daily_habits()
+        
+        # Reset daily water earned counter
+        garden_model.reset_daily_water_earned()
