@@ -12,7 +12,7 @@
 </head>
 
 <body>
-    <!-- Navbar -->
+    <!-- ========== NAVBAR ========== -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="">
@@ -20,14 +20,8 @@
                 Habit Tree
             </a>
 
-            <!-- (Optional) Navbar toggler if you need collapse behavior on small screens -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Left-side nav items -->
+                <!-- Water Display -->
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center">
@@ -37,13 +31,13 @@
                     </li>
                 </ul>
 
+                <!-- Garden Level Display -->
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center">
                             <img src="/static/experience.png" class="me-2" style="height: 2em;">
                             <div class="d-flex flex-column align-items-center">
                                 <span class="mb-1">Garden Level: {{ garden.level }}</span>
-                                <!-- The relative container allows the inner absolute element to be positioned relative to the progress bar -->
                                 <div class="position-relative w-100">
                                     <div class="progress">
                                         <div class="progress-bar progress-bar-striped bg-warning" role="progressbar"
@@ -51,7 +45,6 @@
                                             aria-valuenow="{{ garden.experience }}" aria-valuemin="0"
                                             aria-valuemax="{{ garden.experience_required }}"></div>
                                     </div>
-                                    <!-- Absolutely position the text so it's always centered over the progress bar -->
                                     <div class="position-absolute top-50 start-50 translate-middle text-dark">
                                         {{ garden.experience }}/{{ garden.experience_required }}
                                     </div>
@@ -61,7 +54,7 @@
                     </li>
                 </ul>
 
-                <!-- Right-side "Day ends in" text -->
+                <!-- Day Countdown Timer -->
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item d-flex align-items-center">
                         <span class="navbar-text">
@@ -73,9 +66,11 @@
         </div>
     </nav>
 
+    <!-- ========== MAIN CONTENT ========== -->
     <div class="container my-4">
         <h1 class="mb-4 text-center">Your Garden</h1>
-        <!-- Card for Trees with Horizontal Scroll -->
+        
+        <!-- ========== TREES SECTION ========== -->
         <div class="card mb-4">
             <div class="card-body">
                 <div class="overflow-auto">
@@ -83,21 +78,22 @@
                         {% for tree in trees %}
                         {% if tree.unlocked %}
                         {% if tree.planted %}
-                        <!-- Clickable Planted Tree Card -->
+                        <!-- Planted Tree Card -->
                         <div class="card me-2" style="min-width: 150px; cursor: pointer;" data-tree="true"
                             data-index="{{ loop.index0 }}" data-name="{{ tree.name }}" data-water="{{ tree.water }}"
                             data-stage="{{ tree.stage }}" data-water-required="{{ tree.water_required }}"
                             data-last-watered="{{ tree.last_watered }}">
-                            <!-- Wrapper div for centering with original image size -->
+                            <!-- Tree Image -->
                             <div class="text-center p-2">
                                 <img src="/static/tree_stage_{{ tree.stage }}.png" class="d-inline-block"
                                     alt="Tree Stage">
                             </div>
 
+                            <!-- Tree Info -->
                             <div class="card-body text-center">
                                 <h6 class="card-title mb-2">{{ tree.name }}</h6>
 
-                                <!-- Progress Bar -->
+                                <!-- Water Progress Bar -->
                                 <div class="progress" style="height: 20px; position: relative;">
                                     <div class="progress-bar bg-success" role="progressbar"
                                         style="width: {{ (tree.water / tree.water_required * 100) if tree.water_required else 0 }}%;"
@@ -111,7 +107,7 @@
                                     </div>
                                 </div>
 
-                                {# Moisture label below #}
+                                <!-- Moisture Status -->
                                 {% set m = tree.moisture %}
                                 <p class="
         mt-2
@@ -125,7 +121,7 @@
                             </div>
                         </div>
                         {% else %}
-                        <!-- Unlocked and not Planted Tree Card -->
+                        <!-- Empty Tree Slot -->
                         <div class="card me-2" style="min-width: 150px;">
                             <div class="card-body text-center">
                                 <h6 class="card-title mb-2">Tree Slot Available!</h6>
@@ -140,7 +136,7 @@
                         </div>
                         {% endif %}
                         {% else %}
-                        <!-- Locked Tree Card -->
+                        <!-- Locked Tree Slot -->
                         <div class="card me-2" style="min-width: 150px;">
                             <div class="card-body text-center">
                                 <h6 class="card-title mb-2">Tree Slot not unlocked yet.</h6>
@@ -156,7 +152,8 @@
             </div>
         </div>
 
-        <!-- Instructional Space -->
+        <!-- ========== TREE DETAILS SECTION ========== -->
+        <!-- Instruction Text -->
         <div id="instruction" class="card mt-4 mb-4">
             <h4 class="text-center">Click a tree to view details</h4>
         </div>
@@ -164,15 +161,17 @@
         <!-- Tree Details Card -->
         <div id="treeDetailsCard" class="card mb-4 d-none">
             <div class="card-body">
-                <!-- Editable Tree Name Input Group -->
+                <!-- Tree Name Editor -->
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" id="treeDetailsTitle" placeholder="Tree Name">
                     <button class="btn btn-outline-secondary" type="button" id="saveTreeName">Save</button>
                 </div>
-                <!-- Additional Tree Details -->
+                
+                <!-- Tree Stats -->
                 <p class="card-text mb-1" id="treeStage"><strong>Stage:</strong> 0</p>
                 <p class="card-text mb-1" id="treeLastWatered"><strong>Last watered:</strong> 3 days ago</p>
-                <!-- Water Information and Progress -->
+                
+                <!-- Water Progress -->
                 <p class="card-text">
                     Water: <span id="treeWater">0</span>/<span id="treeWaterRequired">0</span>
                 </p>
@@ -185,6 +184,7 @@
                         <span id="treeProgressText">0/0</span>
                     </div>
                 </div>
+                
                 <!-- Water Button -->
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#waterModal"
                     id="waterButton">
@@ -193,7 +193,7 @@
             </div>
         </div>
 
-        <!-- Bootstrap Modal for Water Action -->
+        <!-- ========== WATER MODAL ========== -->
         <div class="modal fade" id="waterModal" tabindex="-1" aria-labelledby="waterModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -202,6 +202,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                        <!-- Water Amount Selector -->
                         <div class="input-group mb-3">
                             <button class="btn btn-outline-secondary" type="button" id="decrementButton">-</button>
                             <input type="number" class="form-control text-center" id="waterInput" value="0" readonly>
@@ -217,15 +218,15 @@
             </div>
         </div>
 
-        <!-- Row for Weather and Habits -->
+        <!-- ========== WEATHER AND HABITS ROW ========== -->
         <div class="row">
-            <!-- Weather Card -->
+            <!-- ========== WEATHER SECTION ========== -->
             <div class="col-md-6 mb-4">
                 <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title">Weather</h5>
 
-                        <!-- Today Section -->
+                        <!-- Today's Weather -->
                         <div class="text-center mb-2">
                             <h6 class="mb-1">Today</h6>
                         </div>
@@ -240,7 +241,7 @@
                             </div>
                         </div>
 
-                        <!-- Upcoming Section -->
+                        <!-- Upcoming Weather -->
                         <div class="text-center mb-2">
                             <h6 class="mb-1">Upcoming</h6>
                         </div>
@@ -255,25 +256,23 @@
                             </div>
                             {% endfor %}
                         </div>
-
-
                     </div>
                 </div>
             </div>
 
-
-            <!-- Habits Card -->
+            <!-- ========== HABITS SECTION ========== -->
             <div class="col-md-6 mb-4">
                 <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title">Habits</h5>
+                        
                         <!-- Add Habit Button -->
                         <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal"
                             data-bs-target="#habitModal" data-action="add">
                             Add Habit
                         </button>
 
-                        <!-- Active Habits -->
+                        <!-- Active Habits List -->
                         <h6>Active</h6>
                         <div class="list-group mb-3">
                             {% for habit in active_habits %}
@@ -298,7 +297,8 @@
                             <div class="list-group-item">No active habits</div>
                             {% endfor %}
                         </div>
-                        <!-- Scheduled Habits -->
+                        
+                        <!-- Scheduled Habits List -->
                         <h6>Scheduled</h6>
                         <div class="list-group">
                             {% for habit in scheduled_habits %}
@@ -318,84 +318,86 @@
                     </div>
                 </div>
             </div>
+        </div>
 
+        <!-- ========== HABIT MODAL ========== -->
+        <div class="modal fade" id="habitModal" tabindex="-1" aria-labelledby="habitModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="habitModalLabel">Add Habit</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="habitForm">
+                            <!-- Habit Name Input -->
+                            <div class="mb-3">
+                                <label for="habitName" class="form-label">Habit Name</label>
+                                <input type="text" class="form-control" id="habitName"
+                                    placeholder="Enter habit name" />
+                            </div>
 
-            <!-- Bootstrap Add/Edit Habit Modal -->
-            <div class="modal fade" id="habitModal" tabindex="-1" aria-labelledby="habitModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="habitModalLabel">Add Habit</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="habitForm">
-                                <div class="mb-3">
-                                    <label for="habitName" class="form-label">Habit Name</label>
-                                    <input type="text" class="form-control" id="habitName"
-                                        placeholder="Enter habit name" />
+                            <!-- Priority Slider -->
+                            <div class="mb-3">
+                                <label for="habitPriority" class="form-label">
+                                    Priority
+                                    <span class="ms-1" data-bs-toggle="tooltip" data-bs-placement="top"
+                                        title="This represents how much water this habit gives, 0 being highest priority, and 5 the lowest."
+                                        style="cursor: help;">?</span>
+                                </label>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">0</span>
+                                    <input type="range" class="form-range" id="habitPriority" min="0" max="5"
+                                        step="1" />
+                                    <span class="ms-2">5</span>
                                 </div>
+                            </div>
 
-                                <!-- Priority slider with tooltip and number labels -->
-                                <div class="mb-3">
-                                    <label for="habitPriority" class="form-label">
-                                        Priority
-                                        <span class="ms-1" data-bs-toggle="tooltip" data-bs-placement="top"
-                                            title="This represents how much water this habit gives, 0 being highest priority, and 5 the lowest."
-                                            style="cursor: help;">?</span>
-                                    </label>
-                                    <div class="d-flex align-items-center">
-                                        <span class="me-2">0</span>
-                                        <input type="range" class="form-range" id="habitPriority" min="0" max="5"
-                                            step="1" />
-                                        <span class="ms-2">5</span>
-                                    </div>
+                            <!-- Day Selection Buttons -->
+                            <div class="mb-3">
+                                <label class="form-label">Schedule Habit</label>
+                                <div class="btn-group d-flex flex-wrap" role="group" aria-label="Days of the week">
+                                    <input type="checkbox" class="btn-check" id="Monday" autocomplete="off" />
+                                    <label class="btn btn-outline-primary m-1" for="Monday">Mon</label>
+
+                                    <input type="checkbox" class="btn-check" id="Tuesday" autocomplete="off" />
+                                    <label class="btn btn-outline-primary m-1" for="Tuesday">Tue</label>
+
+                                    <input type="checkbox" class="btn-check" id="Wednesday" autocomplete="off" />
+                                    <label class="btn btn-outline-primary m-1" for="Wednesday">Wed</label>
+
+                                    <input type="checkbox" class="btn-check" id="Thursday" autocomplete="off" />
+                                    <label class="btn btn-outline-primary m-1" for="Thursday">Thu</label>
+
+                                    <input type="checkbox" class="btn-check" id="Friday" autocomplete="off" />
+                                    <label class="btn btn-outline-primary m-1" for="Friday">Fri</label>
+
+                                    <input type="checkbox" class="btn-check" id="Saturday" autocomplete="off" />
+                                    <label class="btn btn-outline-primary m-1" for="Saturday">Sat</label>
+
+                                    <input type="checkbox" class="btn-check" id="Sunday" autocomplete="off" />
+                                    <label class="btn btn-outline-primary m-1" for="Sunday">Sun</label>
                                 </div>
-
-                                <!-- Schedule Habit with days toggle buttons -->
-                                <div class="mb-3">
-                                    <label class="form-label">Schedule Habit</label>
-                                    <div class="btn-group d-flex flex-wrap" role="group" aria-label="Days of the week">
-                                        <input type="checkbox" class="btn-check" id="Monday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="Monday">Mon</label>
-
-                                        <input type="checkbox" class="btn-check" id="Tuesday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="Tuesday">Tue</label>
-
-                                        <input type="checkbox" class="btn-check" id="Wednesday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="Wednesday">Wed</label>
-
-                                        <input type="checkbox" class="btn-check" id="Thursday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="Thursday">Thu</label>
-
-                                        <input type="checkbox" class="btn-check" id="Friday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="Friday">Fri</label>
-
-                                        <input type="checkbox" class="btn-check" id="Saturday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="Saturday">Sat</label>
-
-                                        <input type="checkbox" class="btn-check" id="Sunday" autocomplete="off" />
-                                        <label class="btn btn-outline-primary m-1" for="Sunday">Sun</label>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer flex-column align-items-end">
-                            <button type="button" class="btn btn-primary" id="confirmButton">
-                                Add Habit
-                            </button>
-                            <!-- Delete Habit Button; only shown in edit mode -->
-                            <button type="button" class="btn btn-danger" id="deleteHabitButton" style="display: none;">
-                                Delete Habit
-                            </button>
-                            <p class="text-danger mt-2 mb-0" id="addHabitErrorText"></p>
-                        </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer flex-column align-items-end">
+                        <button type="button" class="btn btn-primary" id="confirmButton">
+                            Add Habit
+                        </button>
+                        <!-- Delete Button (Edit Mode Only) -->
+                        <button type="button" class="btn btn-danger" id="deleteHabitButton" style="display: none;">
+                            Delete Habit
+                        </button>
+                        <p class="text-danger mt-2 mb-0" id="addHabitErrorText"></p>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Bootstrap v5.3 JS Bundle (includes Popper) -->
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
