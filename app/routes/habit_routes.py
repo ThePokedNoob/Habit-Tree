@@ -22,7 +22,7 @@ def add_habit():
     
     return jsonify(success=True)
 
-@habit_bp.route('/edit_habit', methods=['POST'])
+@habit_bp.route('/edit_habit', methods=['PUT'])
 def edit_habit():
     """Edit an existing habit"""
     data = request.get_json()
@@ -41,7 +41,7 @@ def edit_habit():
     
     return jsonify(success=True)
 
-@habit_bp.route('/delete_habit', methods=['POST'])
+@habit_bp.route('/delete_habit', methods=['DELETE'])
 def delete_habit():
     """Delete a habit"""
     data = request.get_json()

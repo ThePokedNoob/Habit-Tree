@@ -8,46 +8,46 @@ def init_db():
     tables = {
         'Trees': '''
             CREATE TABLE IF NOT EXISTS Trees (
-                Name TEXT,
-                Creation_Date TEXT,
-                Stage INTEGER,
-                Water INTEGER,
-                Water_Required INTEGER,
-                Last_Watered TEXT,
-                Moisture INTEGER
+                Name TEXT NOT NULL CHECK (Name != ''),
+                Creation_Date TEXT NOT NULL,
+                Stage INTEGER NOT NULL DEFAULT 1 CHECK (Stage >= 1),
+                Water INTEGER NOT NULL DEFAULT 0 CHECK (Water >= 0),
+                Water_Required INTEGER NOT NULL DEFAULT 50 CHECK (Water_Required > 0),
+                Last_Watered TEXT NOT NULL,
+                Moisture INTEGER NOT NULL CHECK (Moisture >= 0 AND Moisture <= 100)
             )
         ''',
         'Garden': '''
             CREATE TABLE IF NOT EXISTS Garden (
-                Creation_Date TEXT,
-                Level INTEGER,
-                Experience INTEGER,
-                Experience_Required INTEGER,
-                Water INTEGER,
-                Daily_Water_Earned INTEGER DEFAULT 0
+                Creation_Date TEXT NOT NULL,
+                Level INTEGER NOT NULL DEFAULT 1 CHECK (Level >= 1),
+                Experience INTEGER NOT NULL DEFAULT 0 CHECK (Experience >= 0),
+                Experience_Required INTEGER NOT NULL DEFAULT 100 CHECK (Experience_Required > 0),
+                Water INTEGER NOT NULL DEFAULT 0 CHECK (Water >= 0),
+                Daily_Water_Earned INTEGER NOT NULL DEFAULT 0 CHECK (Daily_Water_Earned >= 0)
             )
         ''',
         'Habits': '''
             CREATE TABLE IF NOT EXISTS Habits (
                 Name TEXT PRIMARY KEY,
-                Creation_Date TEXT,
-                Priority INTEGER,
-                Days_Of_The_Week TEXT,
-                Completed BOOLEAN
+                Creation_Date TEXT NOT NULL,
+                Priority INTEGER NOT NULL CHECK (Priority >= 0 AND Priority <= 5),
+                Days_Of_The_Week TEXT NOT NULL CHECK (Days_Of_The_Week != ''),
+                Completed BOOLEAN NOT NULL DEFAULT 0
             )
         ''',
         'Weather': '''
             CREATE TABLE IF NOT EXISTS Weather (
                 Id INTEGER PRIMARY KEY,
-                Temperature INTEGER NOT NULL,
-                Humidity INTEGER NOT NULL,
-                State INTEGER NOT NULL
+                Temperature INTEGER NOT NULL CHECK (Temperature >= -5 AND Temperature <= 35),
+                Humidity INTEGER NOT NULL CHECK (Humidity >= 0 AND Humidity <= 100),
+                State INTEGER NOT NULL CHECK (State >= 0 AND State <= 100)
             )
         ''',
         'Meta': '''
             CREATE TABLE IF NOT EXISTS Meta (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL
+                key TEXT PRIMARY KEY NOT NULL CHECK (key != ''),
+                value TEXT NOT NULL CHECK (value != '')
             )
         '''
     }
@@ -56,12 +56,6 @@ def init_db():
         cursor = db.cursor()
         for table, schema in tables.items():
             cursor.execute(schema)
-        
-        # Add Daily_Water_Earned column if it doesn't exist (for existing databases)
-        try:
-            cursor.execute('ALTER TABLE Garden ADD COLUMN Daily_Water_Earned INTEGER DEFAULT 0')
-        except:
-            pass  # Column already exists
         
         # Initialize garden with default values if empty
         if not cursor.execute("SELECT 1 FROM Garden LIMIT 1").fetchone():

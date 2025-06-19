@@ -13,7 +13,7 @@ def plant_tree():
     tree_model.plant_tree()
     return redirect(url_for('main.index'))
 
-@tree_bp.route('/edit_tree', methods=['POST'])
+@tree_bp.route('/edit_tree', methods=['PUT'])
 def edit_tree():
     """Edit tree name"""
     data = request.get_json()

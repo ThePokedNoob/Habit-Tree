@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const index = document.getElementById('treeDetailsCard').dataset.index;
 
         fetch('/edit_tree', {
-            method: 'POST',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: newName, index: parseInt(index) })
         })
@@ -219,9 +219,11 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             fetch('/edit_habit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)  // Use the data object instead of hardcoded variables
             })
                 .then(response => {
                     if (response.ok) {

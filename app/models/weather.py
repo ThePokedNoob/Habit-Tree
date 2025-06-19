@@ -23,7 +23,7 @@ class WeatherModel:
         return self.db.execute('''
             SELECT Temperature, Humidity, State 
             FROM Weather
-            ORDER BY Temperature DESC
+            ORDER BY ROWID DESC
             LIMIT 1
         ''').fetchone()
     
