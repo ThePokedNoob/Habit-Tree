@@ -39,7 +39,21 @@ TEMP_INFLUENCE = 0.2            # How much daily temperature affects tree moistu
 WEATHER_STATE_INFLUENCE = 0.3   # How much weather state affects tree moisture (rain = higher moisture)
 MIN_MOISTURE, MAX_MOISTURE = 0, 100  # Clamped values for tree moisture
 
-# Watering moisture settings
-WATER_TO_MOISTURE_RATIO = 4     # How much water is needed per moisture point (4 water = 1 moisture)
-MOISTURE_BOOST_THRESHOLD = 35   # Below this moisture level, watering gives bonus moisture
-MOISTURE_BOOST_MULTIPLIER = 2.0 # The received moisture multiplier when below moisture threshold
+# Water efficiency settings
+WATER_EFFICIENCY_REDUCTION = 0.7  # Maximum efficiency reduction for very moist trees (70% reduction)
+WATER_TO_MOISTURE_RATIO = 2     # How much water equals 1 moisture point (higher = less moisture per water)
+MOISTURE_BOOST_THRESHOLD = 30   # Below this level, watering provides bonus moisture
+MOISTURE_BOOST_MULTIPLIER = 1.5 # Multiplier for moisture gain when tree is very dry
+
+# Moisture display thresholds and labels
+MOISTURE_VERY_DRY_THRESHOLD = 30        # Below this level shows "Very Dry" (red)
+MOISTURE_DRY_THRESHOLD = 50             # Below this level shows "Dry" (yellow/warning)
+MOISTURE_NEUTRAL_THRESHOLD = 70         # Below this level shows "Neutral" (secondary/gray)
+MOISTURE_HEALTHY_THRESHOLD = 90         # Below this level shows "Healthy" (green)
+
+# Moisture status labels (customizable text)
+MOISTURE_VERY_DRY_LABEL = "Very Dry"
+MOISTURE_DRY_LABEL = "Dry"
+MOISTURE_NEUTRAL_LABEL = "Neutral"
+MOISTURE_HEALTHY_LABEL = "Healthy"
+MOISTURE_TOO_MOIST_LABEL = "Too moist"

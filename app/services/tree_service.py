@@ -1,4 +1,4 @@
-from config import TREE_REQUIREMENTS, REQUIRED_WATER_INCREASE_PER_STAGE_PERCENTAGE
+from config import MOISTURE_DRY_THRESHOLD, MOISTURE_VERY_DRY_THRESHOLD, TREE_REQUIREMENTS, REQUIRED_WATER_INCREASE_PER_STAGE_PERCENTAGE
 from config import DEFAULT_MOISTURE, HUMIDITY_INFLUENCE, TEMP_INFLUENCE, WEATHER_STATE_INFLUENCE
 from config import MIN_MOISTURE, MAX_MOISTURE, DEFAULT_HUM, DEFAULT_TEMP, DEFAULT_STATE
 
@@ -48,16 +48,20 @@ class TreeService:
         
         tree = trees_data[tree_index]
         
+        # Calculate water efficiency based on moisture level
+        water_efficiency = self._calculate_water_efficiency(tree['Moisture'])
+        effective_water = int(amount * water_efficiency)
+        
         # Calculate moisture increase from watering
         moisture_increase = self._calculate_moisture_increase(tree['Moisture'], amount)
         new_moisture = min(MAX_MOISTURE, tree['Moisture'] + moisture_increase)
         
-        # Update tree water, moisture, and last watered time
-        self.tree_model.water_tree(tree['rowid'], amount)
+        # Update tree water (reduced amount), moisture, and last watered time
+        self.tree_model.water_tree(tree['rowid'], effective_water)
         self.tree_model.update_tree_moisture(tree['rowid'], int(new_moisture))
         self.tree_model.update_last_watered(tree['rowid'])
         
-        # Update garden water reserves
+        # Update garden water reserves (full amount is still consumed)
         self.garden_model.update_water(-amount)
         
         # Check for tree growth
@@ -65,6 +69,21 @@ class TreeService:
         
         return True, None
 
+    def _calculate_water_efficiency(self, current_moisture):
+        """Calculate water efficiency based on current moisture level"""
+        from config import MOISTURE_HEALTHY_THRESHOLD, WATER_EFFICIENCY_REDUCTION
+        
+        if current_moisture > MOISTURE_HEALTHY_THRESHOLD:
+            # Reduce efficiency for high moisture trees
+            excess_moisture = current_moisture - MOISTURE_HEALTHY_THRESHOLD
+            max_excess = MAX_MOISTURE - MOISTURE_HEALTHY_THRESHOLD
+            
+            # Linear reduction: efficiency = 1.0 - (excess / max_excess) * reduction_factor
+            efficiency_penalty = (excess_moisture / max_excess) * WATER_EFFICIENCY_REDUCTION
+            return max(0.1, 1.0 - efficiency_penalty)  # Minimum 10% efficiency
+        
+        return 1.0  # Full efficiency for normal/low moisture
+    
     def _calculate_moisture_increase(self, current_moisture, water_amount):
         """Calculate how much moisture increases based on water amount and current moisture level"""
         from config import WATER_TO_MOISTURE_RATIO, MOISTURE_BOOST_THRESHOLD, MOISTURE_BOOST_MULTIPLIER
@@ -118,3 +137,20 @@ class TreeService:
             
             # Update tree moisture in database
             self.tree_model.update_tree_moisture(tree['rowid'], int(new_moisture))
+            
+            # Water regression for dry trees
+            current_water = tree['Water']
+            new_water = current_water
+            
+            if new_moisture < MOISTURE_VERY_DRY_THRESHOLD:
+                # Very dry trees lose water faster
+                water_loss = int(tree['Water_Required'] * 0.15)  # 15% of water required per day
+                new_water = max(0, current_water - water_loss)
+            elif new_moisture < MOISTURE_DRY_THRESHOLD:
+                # Dry trees lose water slowly
+                water_loss = int(tree['Water_Required'] * 0.05)  # 5% of water required per day
+                new_water = max(0, current_water - water_loss)
+            
+            # Update water if it changed
+            if new_water != current_water:
+                self.tree_model.update_tree_water_only(tree['rowid'], new_water)

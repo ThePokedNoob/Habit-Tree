@@ -70,3 +70,12 @@ class TreeModel:
                 SET Last_Watered = ? 
                 WHERE rowid = ?
             ''', (now, tree_id))
+    
+    def update_tree_water_only(self, tree_id, water_amount):
+        """Update tree water amount without triggering growth"""
+        with self.db:
+            self.db.execute('''
+                UPDATE Trees 
+                SET Water = ? 
+                WHERE rowid = ?
+            ''', (water_amount, tree_id))

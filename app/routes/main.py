@@ -2,6 +2,12 @@ from flask import Blueprint, render_template
 from database import get_db
 from models import GardenModel, TreeModel, HabitModel, WeatherModel
 from services import GardenService, TreeService, HabitService, TimeService
+from config import (
+    MOISTURE_VERY_DRY_THRESHOLD, MOISTURE_DRY_THRESHOLD, 
+    MOISTURE_NEUTRAL_THRESHOLD, MOISTURE_HEALTHY_THRESHOLD,
+    MOISTURE_VERY_DRY_LABEL, MOISTURE_DRY_LABEL,
+    MOISTURE_NEUTRAL_LABEL, MOISTURE_HEALTHY_LABEL, MOISTURE_TOO_MOIST_LABEL
+)
 import datetime
 
 main_bp = Blueprint('main', __name__)
@@ -71,6 +77,19 @@ def index():
     weather = weather_model.get_all_weather()
     time_until_day_ends = calculate_time_until_day_ends(weather_model)
     
+    # Moisture configuration for template
+    moisture_config = {
+        'very_dry_threshold': MOISTURE_VERY_DRY_THRESHOLD,
+        'dry_threshold': MOISTURE_DRY_THRESHOLD,
+        'neutral_threshold': MOISTURE_NEUTRAL_THRESHOLD,
+        'healthy_threshold': MOISTURE_HEALTHY_THRESHOLD,
+        'very_dry_label': MOISTURE_VERY_DRY_LABEL,
+        'dry_label': MOISTURE_DRY_LABEL,
+        'neutral_label': MOISTURE_NEUTRAL_LABEL,
+        'healthy_label': MOISTURE_HEALTHY_LABEL,
+        'too_moist_label': MOISTURE_TOO_MOIST_LABEL
+    }
+    
     return render_template("index.html",
         trees=trees,
         active_habits=active_habits,
@@ -78,5 +97,6 @@ def index():
         garden=garden_data,
         weather=weather,
         time_until_day_ends=time_until_day_ends,
-        state_to_text=state_to_text
+        state_to_text=state_to_text,
+        moisture_config=moisture_config
     )

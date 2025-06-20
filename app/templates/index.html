@@ -109,14 +109,21 @@
 
                                 <!-- Moisture Status -->
                                 {% set m = tree.moisture %}
+                                {% set config = moisture_config %}
                                 <p class="
         mt-2
-        {% if m < 30 %}text-danger{% elif m < 50 %}text-warning
-        {% elif m < 70 %}text-secondary{% elif m < 90 %}text-success
+        {% if m < config.very_dry_threshold %}text-danger
+        {% elif m < config.dry_threshold %}text-warning
+        {% elif m < config.neutral_threshold %}text-secondary
+        {% elif m < config.healthy_threshold %}text-success
         {% else %}text-info{% endif %}
       ">
-                                    {% if m < 30 %} Very Dry {% elif m < 50 %} Dry {% elif m < 70 %} Neutral {% elif m <
-                                        90 %} Healthy {% else %} Too moist {% endif %} </p>
+                                    {% if m < config.very_dry_threshold %}{{ config.very_dry_label }}
+                                    {% elif m < config.dry_threshold %}{{ config.dry_label }}
+                                    {% elif m < config.neutral_threshold %}{{ config.neutral_label }}
+                                    {% elif m < config.healthy_threshold %}{{ config.healthy_label }}
+                                    {% else %}{{ config.too_moist_label }}{% endif %}
+                                </p>
 
                             </div>
                         </div>
