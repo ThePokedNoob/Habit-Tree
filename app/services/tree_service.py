@@ -1,6 +1,10 @@
-from config import MOISTURE_DRY_THRESHOLD, MOISTURE_VERY_DRY_THRESHOLD, TREE_REQUIREMENTS, REQUIRED_WATER_INCREASE_PER_STAGE_PERCENTAGE
-from config import DEFAULT_MOISTURE, HUMIDITY_INFLUENCE, TEMP_INFLUENCE, WEATHER_STATE_INFLUENCE
-from config import MIN_MOISTURE, MAX_MOISTURE, DEFAULT_HUM, DEFAULT_TEMP, DEFAULT_STATE
+from config import (
+    MOISTURE_DRY_THRESHOLD, MOISTURE_VERY_DRY_THRESHOLD, TREE_REQUIREMENTS, 
+    REQUIRED_WATER_INCREASE_PER_STAGE_PERCENTAGE, DEFAULT_MOISTURE, HUMIDITY_INFLUENCE, 
+    TEMP_INFLUENCE, WEATHER_STATE_INFLUENCE, MIN_MOISTURE, MAX_MOISTURE, 
+    DEFAULT_HUM, DEFAULT_TEMP, DEFAULT_STATE,
+    VERY_DRY_WATER_LOSS_PERCENTAGE, DRY_WATER_LOSS_PERCENTAGE
+)
 
 class TreeService:
     def __init__(self, tree_model, garden_model):
@@ -144,11 +148,11 @@ class TreeService:
             
             if new_moisture < MOISTURE_VERY_DRY_THRESHOLD:
                 # Very dry trees lose water faster
-                water_loss = int(tree['Water_Required'] * 0.15)  # 15% of water required per day
+                water_loss = int(tree['Water_Required'] * VERY_DRY_WATER_LOSS_PERCENTAGE / 100)
                 new_water = max(0, current_water - water_loss)
             elif new_moisture < MOISTURE_DRY_THRESHOLD:
                 # Dry trees lose water slowly
-                water_loss = int(tree['Water_Required'] * 0.05)  # 5% of water required per day
+                water_loss = int(tree['Water_Required'] * DRY_WATER_LOSS_PERCENTAGE / 100)
                 new_water = max(0, current_water - water_loss)
             
             # Update water if it changed

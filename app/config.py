@@ -57,3 +57,7 @@ MOISTURE_DRY_LABEL = "Dry"
 MOISTURE_NEUTRAL_LABEL = "Neutral"
 MOISTURE_HEALTHY_LABEL = "Healthy"
 MOISTURE_TOO_MOIST_LABEL = "Too moist"
+
+# Tree regression settings
+VERY_DRY_WATER_LOSS_PERCENTAGE = 15  # Percentage of water_required lost per day for very dry trees
+DRY_WATER_LOSS_PERCENTAGE = 5        # Percentage of water_required lost per day for dry trees
